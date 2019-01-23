@@ -1,0 +1,81 @@
+import React from "react";
+import { StyleSheet, View, Image } from "react-native";
+import { Button, Headline } from "react-native-paper";
+
+const LoginBackgroundImage = require("../../src/LoginBG.png");
+
+export default class LoginBackground extends React.Component {
+  render() {
+    return (
+      <View style={styles.container}>
+        <View style={styles.headline}>
+          <Headline style={styles.headlinetxt}>Travel Guide</Headline>
+        </View>
+        <View style={styles.queueimg}>
+          <Image
+            style={{
+              justifyContent: "center"
+            }}
+            resizeMode="center"
+            source={LoginBackgroundImage}
+          />
+        </View>
+        <View style={styles.bottom}>
+          <Button
+            style={[
+              styles.btnstyle,
+              {
+                margin: 10,
+                backgroundColor: "#4CAF50"
+              }
+            ]}
+            mode="contained"
+            onPress={() => this.props.navigation.navigate("Login")}
+          >
+            Login
+          </Button>
+          <Button
+            style={[styles.btnstyle, { marginTop: 10 }]}
+            mode="contained"
+            onPress={() => this.props.navigation.navigate("SignUp")}
+          >
+            Signup
+          </Button>
+        </View>
+      </View>
+    );
+  }
+}
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: "#fff",
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  headline: {
+    height: "15%",
+    alignItems: "center"
+  },
+  headlinetxt: {
+    paddingTop: "10%",
+    textAlign: "center",
+    fontWeight: "bold",
+    width: "100%"
+  },
+  queueimg: {
+    height: "65%",
+    justifyContent: "center",
+    alignItems: "center"
+  },
+  bottom: {
+    marginTop: 10,
+    height: "20%",
+    flexDirection: "row"
+  },
+  btnstyle: {
+    height: "35%",
+    width: "40%",
+    justifyContent: "center"
+  }
+});
