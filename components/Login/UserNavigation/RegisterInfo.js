@@ -53,7 +53,7 @@ export default class RegisterInfo extends React.Component {
   };
 
   navigateTo = () => {
-    this.props.navigation.navigate("NiyamDrawer");
+    this.props.navigation.navigate("FetchLocation");
   };
 
   selectMumbai() {
