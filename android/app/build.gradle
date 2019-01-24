@@ -138,6 +138,14 @@ android {
 }
 
 dependencies {
+compile(project(':react-native-google-places')){
+          exclude group: 'com.google.android.gms', module: 'play-services-base'
+          exclude group: 'com.google.android.gms', module: 'play-services-places'
+          exclude group: 'com.google.android.gms', module: 'play-services-location'
+      }
+    compile 'com.google.android.gms:play-services-base:+'
+    compile 'com.google.android.gms:play-services-places:+'
+    compile 'com.google.android.gms:play-services-location:+'
     compile project(':react-native-firebase')
     compile project(':react-native-vector-icons')
     compile project(':react-native-gesture-handler')
