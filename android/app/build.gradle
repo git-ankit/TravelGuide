@@ -153,8 +153,8 @@ compile(project(':react-native-google-places')){
     implementation "com.android.support:appcompat-v7:${rootProject.ext.supportLibVersion}"
     implementation "com.facebook.react:react-native:+"  // From node_modules
     implementation 'com.google.firebase:firebase-core:+'
-    implementation "com.google.firebase:firebase-auth:16.1.0"
-    implementation "com.google.firebase:firebase-firestore:17.1.5"
+    implementation "com.google.firebase:firebase-auth:+"
+    implementation "com.google.firebase:firebase-firestore:+"
 
 }
 
@@ -166,3 +166,4 @@ task copyDownloadableDepsToLibs(type: Copy) {
 }
 
 apply plugin: 'com.google.gms.google-services'
+com.google.gms.googleservices.GoogleServicesPlugin.config.disableVersionCheck = true
