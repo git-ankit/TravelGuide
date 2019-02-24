@@ -5,24 +5,60 @@ import {
   Text,
   View,
   TouchableOpacity,
-  TextInput,
   Image,
   FlatList,
   Dimensions
 } from "react-native";
+import firebase from "react-native-firebase";
 import RNGooglePlaces from "react-native-google-places";
+import {TextInput, Button} from "react-native-paper"
 
-type Props = {};
-export default class LocationFetch extends Component<Props> {
+export default class LocationFetch extends Component{
   constructor(props) {
     super(props);
     this.state = {
       showInput: false,
       addressQuery: "",
       predictions: [],
-      selectedPlace: []
+      selectedPlace: [],// to hold the value of the selected place, quite self explanatory
+      questions: [],// array to hold all the questions and the id of who asked them, about a particular place
+      question: '',// state for textinput to ask a question
+      loading: false,// for when we submit a question
+      user: null,// a state to hold the value of current user id
     };
+    this.user = firebase.firestore().collection("Users")
+    this.ref = firebase.firestore().collection("Questions")
   }
+  componentDidMount() {
+    this.unsubscribe = firebase.auth().onAuthStateChanged(user => {
+      this.setState({ user: user.uid});
+    });
+  }
+
+  getQuestions = (place) =>{
+    this.ref.where("place_id", "==", place.placeID).onSnapshot(this.onCollectionUpdate);// match the place_id and get questions about that place
+  }
+
+  onCollectionUpdate = querySnapshot => {
+    if (querySnapshot.empty) {
+      this.setState({
+        questions: [{question: "No one has ever asked any questions, yet. Be the first one!"}]//for if there are no questions
+      });
+    }
+    else{
+      const questions = [];
+      querySnapshot.forEach(doc => {
+        const { question } = doc.data();
+        questions.push({
+          questionID: doc.id,//name of the doc pertaining that question        
+          question //the question
+        });
+        this.setState({
+          questions: questions // we push the entire data, each time, after each iteration as appending a state-array can lead to race conditions due to its asynchronous nature 
+        });       
+      }); 
+    }       
+  };
 
   onShowInputPress = () => {
     console.log("show input");
@@ -35,8 +71,10 @@ export default class LocationFetch extends Component<Props> {
       .then(place => {
         console.log(place);
         this.setState({
-          selectedPlace: place
+          selectedPlace: place,
+          questions: []
         });
+        this.getQuestions(place);// As soon as we select the place, load the questions 
       })
       .catch(error => console.log(error.message));
   };
@@ -46,11 +84,13 @@ export default class LocationFetch extends Component<Props> {
       .then(place => {
         console.log(place);
         this.setState({
-          selectedPlace: place
+          selectedPlace: place,
+          questions: []
         });
+        this.getQuestions(place);// As soon as we select the place, load the questions 
       })
-      .catch(error => console.log(error.message));
-  };
+      .catch(error => console.log(error.message));      
+    };
 
   onQueryChange = text => {
     this.setState({ addressQuery: text });
@@ -99,6 +139,17 @@ export default class LocationFetch extends Component<Props> {
       .catch(error => console.log(error.message));
   };
 
+  postQuestion = () =>{
+    this.setState({ loading: true });
+    var data = {
+      question: this.state.question,
+      asked_by: this.state.user,
+      place_id: this.state.selectedPlace.placeID
+    };
+    this.ref
+      .add(data)
+      .then(this.setState({ loading: false, question: '' }));
+  };// a question's collection will have the fields-the question, the asker's user id and the selected place id. Also, a collection of answers
   keyExtractor = item => item.placeID;
 
   renderItem = ({ item }) => {
@@ -108,12 +159,7 @@ export default class LocationFetch extends Component<Props> {
           style={styles.listItem}
           onPress={() => this.onSelectSuggestion(item.placeID)}
         >
-          <View style={styles.avatar}>
-            <Image
-              style={styles.listIcon}
-              source={require("./../../assets/icon-home.png")}
-            />
-          </View>
+
           <View style={styles.placeMeta}>
             <Text style={styles.primaryText}>{item.primaryText}</Text>
             <Text style={styles.secondaryText}>{item.secondaryText}</Text>
@@ -126,6 +172,8 @@ export default class LocationFetch extends Component<Props> {
 
   render() {
     placeDetail = this.state.selectedPlace;
+    navigation = this.props.navigation
+    user = this.state.user
     console.log(placeDetail);
     return (
       <View style={styles.container}>
@@ -158,13 +206,18 @@ export default class LocationFetch extends Component<Props> {
 
         {!this.state.showInput && (
           <View>
-            <TouchableOpacity
+            {/* <TouchableOpacity
               style={styles.inputLauncher}
               onPress={this.onShowInputPress}
             >
               <Text style={{ color: "#70818A" }}>Where to?</Text>
+            </TouchableOpacity> */}
+            <TouchableOpacity
+              style={styles.button}
+              onPress={this.onOpenAutocompletePress}
+            >
+              <Text style={styles.buttonText}>Search</Text>
             </TouchableOpacity>
-
             <TouchableOpacity
               style={styles.button}
               onPress={this.onOpenPickerPress}
@@ -172,18 +225,59 @@ export default class LocationFetch extends Component<Props> {
               <Text style={styles.buttonText}>Open Maps</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.button}
-              onPress={this.onOpenAutocompletePress}
-            >
-              <Text style={styles.buttonText}>Search</Text>
-            </TouchableOpacity>
+            {
+              placeDetail.name && (//Only be visible when a place is selected
+                <View>
+                  <View
+                    elevation={3}
+                    style={styles.shadowContainer}
+                  >
+                    <Text style={{ textAlign: 'center', fontWeight: "bold" }}>Location Description</Text>
+                    <Text style={{ textAlign: 'center' }}>{placeDetail.name}</Text>
+                    <Text style={{ textAlign: 'center' }}>{placeDetail.address}</Text>
+                    <Text style={{ textAlign: 'center' }}>{placeDetail.phoneNumber}</Text>
+                    <Text style={{ textAlign: 'center' }}>{placeDetail.website}</Text>                  
+                  </View>
+                  <View
+                    elevation={3}
+                    style={styles.shadowContainer}
+                  >
+                    <TextInput 
+                      label = "Have a question about this place?"
+                      placeholder = "Shoot away!"
+                      value= {this.state.question}
+                      onChangeText={question => this.setState({ question })}  
+                    />
+                    <Button
+                      onPress={() => this.postQuestion()}
+                      loading= {this.state.loading}
+                    >
+                      <Text>Post my question</Text>
+                    </Button>
+                  </View>
+                  <Text style={{ textAlign: 'center', fontWeight: "bold" }}>Or you can see what others have asked...</Text>
 
-            <Text>{placeDetail.name}</Text>
-            <Text>{placeDetail.address}</Text>
-            <Text>{placeDetail.phoneNumber}</Text>
-            <Text>{placeDetail.website}</Text>
+                  {
+                    this.state.questions.map(function (name, index) {// Iterate the questions
+                      return (
+                        <TouchableOpacity
+                          onPress={()=>{navigation.navigate("AnswersScreen",{place: placeDetail, question: name, user: user})}}
+                        >
+                        <View
+                          elevation={3}
+                          style={[styles.shadowContainer,{padding:5}]}
+                        >
+                          <Text style={{ textAlign: 'center', fontWeight: "bold" }} key={index}>{name.question}</Text>
+                        </View>
+                        </TouchableOpacity>
+                      )
+                    })
+                  }
+                  {console.log(this.state.questions)}
 
+                </View>
+              )
+            }
             {/* 
             <TouchableOpacity
               style={styles.button}
@@ -215,6 +309,19 @@ export default class LocationFetch extends Component<Props> {
 }
 
 const styles = StyleSheet.create({
+  shadowContainer:{  
+    backgroundColor: "#fff",
+    marginRight: 10,
+    marginBottom: 5,
+    marginTop: 5,
+    borderRadius: 10,
+    padding: 2,
+    shadowOffset: { width: 10, height: 10 },
+    shadowColor: "black",
+    shadowOpacity: 1.0,
+    justifyContent: "center",
+    width: "100%"    
+  },
   container: {
     flex: 1,
     backgroundColor: "#ffffff",

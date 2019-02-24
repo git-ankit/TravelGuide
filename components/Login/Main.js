@@ -36,7 +36,7 @@ export default class Main extends React.Component {
       if (activeUser == firebaseEmail) {
         this.setState({ isActive: true });
         this.props.navigation.navigate(
-          this.state.isActive ? "LocationFetch" : "RegisterInfo"
+          this.state.isActive ? "AppNavigator" : "RegisterInfo"
         );
       } else {
         this.UserInformation = this.ref.where("email", "==", firebaseEmail);
@@ -58,7 +58,7 @@ export default class Main extends React.Component {
       }
     });
     this.props.navigation.navigate(
-      this.state.isActive ? "LocationFetch" : "RegisterInfo"
+      this.state.isActive ? "AppNavigator" : "RegisterInfo"
     );
   };
 

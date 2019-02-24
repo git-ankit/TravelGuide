@@ -10,7 +10,7 @@ import Login from "../Login/Login";
 import ForgotPassword from "../Login/ForgotPassword";
 import Main from "../Login/Main";
 import RegisterInfo from "../Login/UserNavigation/RegisterInfo";
-import LocationFetch from "../Screens/LocationFetch";
+import AppNavigator from "./AppNavigator";
 
 export default class LoginNavigatorMain extends React.Component {
   render() {
@@ -28,7 +28,7 @@ const LoginNavigator = createSwitchNavigator(
     ForgotPassword,
     Main,
     RegisterInfo,
-    LocationFetch
+    AppNavigator
   },
   {
     initialRouteName: "Loading"

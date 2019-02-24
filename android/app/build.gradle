@@ -154,7 +154,7 @@ compile(project(':react-native-google-places')){
     implementation "com.facebook.react:react-native:+"  // From node_modules
     implementation 'com.google.firebase:firebase-core:+'
     implementation "com.google.firebase:firebase-auth:+"
-    implementation "com.google.firebase:firebase-firestore:+"
+    implementation "com.google.firebase:firebase-firestore:17.1.5"
 
 }
 

@@ -1,0 +1,69 @@
+
+import React, { Component } from "react";
+import {
+  Platform,
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  TextInput,
+  Image,
+  FlatList,
+  Dimensions
+} from "react-native";
+import firebase from "react-native-firebase";
+import RNGooglePlaces from "react-native-google-places";
+
+type Props = {};
+export default class LocationFetch extends Component<Props> {
+  constructor(props) {
+    super(props);
+    this.state = {
+      showInput: false,
+      addressQuery: "",
+      predictions: [],
+      selectedPlace: [],
+      fullname: []
+    };
+    this.ref = firebase.firestore().collection("Users")
+    this.ref.where("City", "==", "Mumbai").onSnapshot(this.onCollectionUpdate);
+  }
+
+  
+  onCollectionUpdate = querySnapshot => {
+    const todos = [];
+    querySnapshot.forEach(doc => {
+      const { FullName } = doc.data();
+
+      todos.push({        
+        FullName
+      });
+
+      this.setState({
+        fullname: todos
+      });
+    });
+    this.state.fullname.map(function(name,index){
+      console.log(name,index)
+    })
+    
+  };
+
+
+
+  render() {
+    
+    return (
+      <View>
+      {this.state.fullname.map(function(name,index){
+        return(<Text>{name.FullName}</Text>)
+      })
+      }
+      {console.log(this.state.fullname)}
+      
+        
+        
+      </View>
+    );
+  }
+}
