@@ -1,6 +1,6 @@
 import React, { Component } from "react";
-import { Text, View } from "react-native";
-import {TextInput, Button} from "react-native-paper"
+import { Text, View, TouchableOpacity } from "react-native";
+import {TextInput, Button, TouchableRipple} from "react-native-paper"
 import firebase from "react-native-firebase";
 export default class App extends Component {
     constructor(props){
@@ -8,7 +8,7 @@ export default class App extends Component {
         this.state={
             selectedPlace: this.props.navigation.getParam("place",null),// place that was selected in the last page
             question: this.props.navigation.getParam("question",null),// question from the last page
-            userID: this.props.navigation.getParam("user",null),// the current user id
+            user: this.props.navigation.getParam("user",null),// the current user email
             answer: '', // state to hold the value of the textinput to answer the question
             answers:[], // an array to display the list of answers
             loading: false
@@ -17,6 +17,7 @@ export default class App extends Component {
         this.ref = firebase.firestore().collection(questionDoc);
         this.ref.onSnapshot(this.onCollectionUpdate);
     }
+
     onCollectionUpdate = querySnapshot => {
         if (querySnapshot.empty) {
           this.setState({
@@ -26,24 +27,25 @@ export default class App extends Component {
         else{
           const answers = [];
           querySnapshot.forEach(doc => {
-            const { answer } = doc.data();
+            const { answer, answered_by } = doc.data();
             answers.push({
               AnswerID: doc.id,        
-              answer
+              answer,
+              answered_by
             });
             this.setState({
               answers: answers
             });       
           }); 
         }       
-      };
-    
+      };    
 
+    
     postAnswer = () =>{
         this.setState({ loading: true });
         var data = {
           answer: this.state.answer,
-          answered_by: this.state.userID
+          answered_by: this.state.user
         };
         this.ref
           .add(data)
@@ -70,7 +72,14 @@ export default class App extends Component {
                 <Text>Look at some of the answers, other people have given</Text>
                 {
                     this.state.answers.map(function (name, index) {
-                        return (<Text style={{ textAlign: 'center', fontWeight: "bold" }} key={index}>{name.answer}</Text>)
+                        console.log(name)
+                        return (
+                          <View>
+                            <TouchableOpacity>
+                              <Text style={{ textAlign: 'center', fontWeight: "bold" }} key={index}>{name.answer}</Text>
+                            </TouchableOpacity>
+                          </View>
+                        )
                     })
                 }
             </View>

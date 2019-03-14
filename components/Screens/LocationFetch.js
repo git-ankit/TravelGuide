@@ -7,13 +7,15 @@ import {
   TouchableOpacity,
   Image,
   FlatList,
-  Dimensions
+  Dimensions,
+  Alert,
+  ActivityIndicator
 } from "react-native";
 import firebase from "react-native-firebase";
 import RNGooglePlaces from "react-native-google-places";
-import {TextInput, Button} from "react-native-paper"
+import { TextInput, Button } from "react-native-paper"
 
-export default class LocationFetch extends Component{
+export default class LocationFetch extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -24,40 +26,67 @@ export default class LocationFetch extends Component{
       questions: [],// array to hold all the questions and the id of who asked them, about a particular place
       question: '',// state for textinput to ask a question
       loading: false,// for when we submit a question
-      user: null,// a state to hold the value of current user id
+      user: null,// a state to hold the value of current user email
+      user_email: null
     };
     this.user = firebase.firestore().collection("Users")
     this.ref = firebase.firestore().collection("Questions")
   }
+  
   componentDidMount() {
     this.unsubscribe = firebase.auth().onAuthStateChanged(user => {
-      this.setState({ user: user.uid});
+      this.setState({ user: user.email });
+      this.getNameByEmail(user.email);
     });
+    
   }
+  getNameByEmail = (email) => {
+    console.log('in here')
+    this.user.where('email', '==', email).get()
+    .then(
+      info = (query) => {
+        query.forEach(
+          doc => {
+            console.log(doc.data().FullName + 'in hereat')
+            this.setState({ user_email: doc.data().FullName });            
+          }
+        )
+        
+      }
+    )
+  }
+  
 
-  getQuestions = (place) =>{
+  getQuestions = (place) => {
     this.ref.where("place_id", "==", place.placeID).onSnapshot(this.onCollectionUpdate);// match the place_id and get questions about that place
   }
 
   onCollectionUpdate = querySnapshot => {
     if (querySnapshot.empty) {
       this.setState({
-        questions: [{question: "No one has ever asked any questions, yet. Be the first one!"}]//for if there are no questions
+        questions: [{ question: "" }]//for if there are no questions
       });
     }
-    else{
+    else {
       const questions = [];
       querySnapshot.forEach(doc => {
-        const { question } = doc.data();
+        
+        const { question, upvote, downvote, asked_by,asked_by_name } = doc.data();
+        
         questions.push({
           questionID: doc.id,//name of the doc pertaining that question        
-          question //the question
-        });
+          question, //the question
+          upvote,
+          downvote,
+          asked_by,
+          asked_by_name
+        })
+        
         this.setState({
           questions: questions // we push the entire data, each time, after each iteration as appending a state-array can lead to race conditions due to its asynchronous nature 
-        });       
-      }); 
-    }       
+        });
+      });
+    }
   };
 
   onShowInputPress = () => {
@@ -69,7 +98,6 @@ export default class LocationFetch extends Component{
     console.log("picker");
     RNGooglePlaces.openPlacePickerModal()
       .then(place => {
-        console.log(place);
         this.setState({
           selectedPlace: place,
           questions: []
@@ -82,15 +110,14 @@ export default class LocationFetch extends Component{
   onOpenAutocompletePress = () => {
     RNGooglePlaces.openAutocompleteModal()
       .then(place => {
-        console.log(place);
         this.setState({
           selectedPlace: place,
           questions: []
         });
         this.getQuestions(place);// As soon as we select the place, load the questions 
       })
-      .catch(error => console.log(error.message));      
-    };
+      .catch(error => console.log(error.message));
+  };
 
   onQueryChange = text => {
     this.setState({ addressQuery: text });
@@ -139,16 +166,106 @@ export default class LocationFetch extends Component{
       .catch(error => console.log(error.message));
   };
 
-  postQuestion = () =>{
+  upvote = (docID, upvotes, downvotes) => {
+    this.setState({ loading: true })
+    this.ref.doc(docID)
+      .get()
+      .then(update = (querySnapshot) => {
+        if (querySnapshot.exists) {
+          this.ref.doc(docID).collection('upvotedBy').where('userID', '==', this.state.user).get()
+            .then(
+              searchInUpvotes = (query_for_upvote) => {
+                if (!query_for_upvote.empty) {
+                  Alert.alert("You have already upvoted this!");
+                }
+                else {
+                  this.ref.doc(docID).collection('downvotedBy').where('userID', '==', this.state.user).get()
+                    .then(
+                      searchInDownvotes = (query_for_downvote) => {
+                        if (!query_for_downvote.empty) {
+                          query_for_downvote.forEach(
+                            doc => doc.ref.delete()
+                          )
+                          this.ref.doc(docID).collection('upvotedBy').add({ userID: this.state.user })
+                          this.ref.doc(docID).update({ upvote: upvotes + 1, downvote: downvotes - 1 })
+                        }
+                        else {
+                          this.ref.doc(docID).collection('upvotedBy').add({ userID: this.state.user })
+                          this.ref.doc(docID).update({ upvote: upvotes + 1 })
+                        }
+                      }
+                    )
+                }
+              }
+            )
+        }
+        else {
+          Alert.alert("Something went wrong")
+        }
+      })
+      .then(this.setState({ loading: false }))
+
+  }
+
+  downvote = (docID, upvotes, downvotes) => {
+    this.setState({ loading: true });
+    this.ref.doc(docID)
+      .get()
+      .then(update = (querySnapshot) => {
+        if (querySnapshot.exists) {
+          this.ref.doc(docID).collection('downvotedBy').where('userID', '==', this.state.user).get()
+            .then(
+              searchInDownvotes = (query_for_upvote) => {
+                if (!query_for_upvote.empty) {
+                  Alert.alert("You have already downvoted this!");
+                }
+                else {
+                  this.ref.doc(docID).collection('upvotedBy').where('userID', '==', this.state.user).get()
+                    .then(
+                      searchInUpvotes = (query_for_upvote) => {
+                        if (!query_for_upvote.empty) {
+                          query_for_upvote.forEach(
+                            doc => doc.ref.delete()
+                          )
+                          this.ref.doc(docID).collection('downvotedBy').add({ userID: this.state.user })
+                          this.ref.doc(docID).update({ downvote: downvotes + 1, upvote: upvotes - 1 })
+                        }
+                        else {
+                          this.ref.doc(docID).collection('downvotedBy').add({ userID: this.state.user })
+                          this.ref.doc(docID).update({ downvote: downvotes + 1 })
+                        }
+                      }
+                    )
+                }
+              }
+            )
+        }
+        else {
+          Alert.alert("Something went wrong")
+        }
+      })
+    this.setState({ loading: false });
+  }
+
+
+  postQuestion = () => {
     this.setState({ loading: true });
     var data = {
       question: this.state.question,
       asked_by: this.state.user,
-      place_id: this.state.selectedPlace.placeID
+      place_id: this.state.selectedPlace.placeID,
+      upvote: 0,
+      downvote: 0,
+      asked_by_name: this.state.user_email
     };
     this.ref
       .add(data)
-      .then(this.setState({ loading: false, question: '' }));
+      .then(this.setState({ loading: false, question: '' }))
+      .then(docRef => {
+        this.upvote(docRef.id, 0, 0)
+      })
+      .catch(error => console.error("Error adding document: ", error))
+
   };// a question's collection will have the fields-the question, the asker's user id and the selected place id. Also, a collection of answers
   keyExtractor = item => item.placeID;
 
@@ -174,7 +291,6 @@ export default class LocationFetch extends Component{
     placeDetail = this.state.selectedPlace;
     navigation = this.props.navigation
     user = this.state.user
-    console.log(placeDetail);
     return (
       <View style={styles.container}>
         {this.state.showInput && (
@@ -206,79 +322,107 @@ export default class LocationFetch extends Component{
 
         {!this.state.showInput && (
           <View>
-            {/* <TouchableOpacity
+            <View>
+              <ActivityIndicator size="large" color="#0000ff" animating={this.state.loading} />
+            </View>
+            <View>
+              {/* <TouchableOpacity
               style={styles.inputLauncher}
               onPress={this.onShowInputPress}
             >
               <Text style={{ color: "#70818A" }}>Where to?</Text>
             </TouchableOpacity> */}
-            <TouchableOpacity
-              style={styles.button}
-              onPress={this.onOpenAutocompletePress}
-            >
-              <Text style={styles.buttonText}>Search</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.button}
-              onPress={this.onOpenPickerPress}
-            >
-              <Text style={styles.buttonText}>Open Maps</Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.button}
+                onPress={this.onOpenAutocompletePress}
+              >
+                <Text style={styles.buttonText}>Search</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.button}
+                onPress={this.onOpenPickerPress}
+              >
+                <Text style={styles.buttonText}>Open Maps</Text>
+              </TouchableOpacity>
 
-            {
-              placeDetail.name && (//Only be visible when a place is selected
-                <View>
-                  <View
-                    elevation={3}
-                    style={styles.shadowContainer}
-                  >
-                    <Text style={{ textAlign: 'center', fontWeight: "bold" }}>Location Description</Text>
-                    <Text style={{ textAlign: 'center' }}>{placeDetail.name}</Text>
-                    <Text style={{ textAlign: 'center' }}>{placeDetail.address}</Text>
-                    <Text style={{ textAlign: 'center' }}>{placeDetail.phoneNumber}</Text>
-                    <Text style={{ textAlign: 'center' }}>{placeDetail.website}</Text>                  
-                  </View>
-                  <View
-                    elevation={3}
-                    style={styles.shadowContainer}
-                  >
-                    <TextInput 
-                      label = "Have a question about this place?"
-                      placeholder = "Shoot away!"
-                      value= {this.state.question}
-                      onChangeText={question => this.setState({ question })}  
-                    />
-                    <Button
-                      onPress={() => this.postQuestion()}
-                      loading= {this.state.loading}
+              {
+                placeDetail.name && (//Only be visible when a place is selected
+                  <View>
+                    <View
+                      elevation={3}
+                      style={styles.shadowContainer}
                     >
-                      <Text>Post my question</Text>
-                    </Button>
+                      <Text style={{ textAlign: 'center', fontWeight: "bold" }}>Location Description</Text>
+                      <Text style={{ textAlign: 'center' }}>{placeDetail.name}</Text>
+                      <Text style={{ textAlign: 'center' }}>{placeDetail.address}</Text>
+                      <Text style={{ textAlign: 'center' }}>{placeDetail.phoneNumber}</Text>
+                      <Text style={{ textAlign: 'center' }}>{placeDetail.website}</Text>
+                    </View>
+                    <View
+                      elevation={3}
+                      style={styles.shadowContainer}
+                    >
+                      <TextInput
+                        label="Have an opinion about this place?"
+                        placeholder="Shoot away!"
+                        value={this.state.question}
+                        onChangeText={question => this.setState({ question })}
+                      />
+                      <Button
+                        onPress={() => this.postQuestion()}
+                        loading={this.state.loading}
+                      >
+                        <Text>Post my opinion</Text>
+                      </Button>
+                    </View>
+                    <Text style={{ textAlign: 'center', fontWeight: "bold" }}>Or you can see what others have said...</Text>
+
+                    {
+                      this.state.questions.map(iterate = (name, index) => {// Iterate the questions
+                        if (name.question == '') {
+                          return (
+                            <View
+                              elevation={3}
+                              style={[styles.shadowContainer, { padding: 5 }]}
+                            >
+                              <Text style={{ textAlign: 'center', fontWeight: "bold" }}>Oh my, the comments are so empty!</Text>
+                            </View>
+                          )
+                        }
+                        else {
+                          
+                          return (
+                            <TouchableOpacity
+                              onPress={() => { navigation.navigate("AnswersScreen", { place: placeDetail, question: name, user: user }) }}
+                            >
+                              <View
+                                elevation={3}
+                                style={[styles.shadowContainer, { padding: 5 }]}
+                              >
+                                <Text style={{ textAlign: 'center', fontWeight: "bold" }} key={index}>Asked by:{name.asked_by_name} Question:{name.question}</Text>
+                                <View style={styles.IconContainer}>
+                                  <Button
+                                    onPress={() => this.upvote(name.questionID, name.upvote, name.downvote)}
+                                  >
+                                    <Text>Upvote ({name.upvote})</Text>
+                                  </Button>
+                                  <Button
+                                    onPress={() => this.downvote(name.questionID, name.upvote, name.downvote)}
+                                  >
+                                    <Text>Downvote ({name.downvote})</Text>
+                                  </Button>
+                                </View>
+                              </View>
+                            </TouchableOpacity>
+                          )
+                        }
+                      })
+                    }
+
                   </View>
-                  <Text style={{ textAlign: 'center', fontWeight: "bold" }}>Or you can see what others have asked...</Text>
-
-                  {
-                    this.state.questions.map(function (name, index) {// Iterate the questions
-                      return (
-                        <TouchableOpacity
-                          onPress={()=>{navigation.navigate("AnswersScreen",{place: placeDetail, question: name, user: user})}}
-                        >
-                        <View
-                          elevation={3}
-                          style={[styles.shadowContainer,{padding:5}]}
-                        >
-                          <Text style={{ textAlign: 'center', fontWeight: "bold" }} key={index}>{name.question}</Text>
-                        </View>
-                        </TouchableOpacity>
-                      )
-                    })
-                  }
-                  {console.log(this.state.questions)}
-
-                </View>
-              )
-            }
-            {/* 
+                )
+              }
+              {/* 
             <TouchableOpacity
               style={styles.button}
               onPress={this.onGetCurrentPlacePress}
@@ -288,19 +432,20 @@ export default class LocationFetch extends Component{
               </Text>
             </TouchableOpacity> */}
 
-            {/* <TouchableOpacity
+              {/* <TouchableOpacity
               style={styles.button}
               onPress={this.onGetPlaceByIDPress}
             >
               <Text style={styles.buttonText}>Get Place By ID</Text>
             </TouchableOpacity> */}
 
-            {/* <TouchableOpacity
+              {/* <TouchableOpacity
               style={styles.button}
               onPress={this.onGetPlacesByIDsPress}
             >
               <Text style={styles.buttonText}>Get Places By IDs (New)</Text>
             </TouchableOpacity> */}
+            </View>
           </View>
         )}
       </View>
@@ -309,7 +454,7 @@ export default class LocationFetch extends Component{
 }
 
 const styles = StyleSheet.create({
-  shadowContainer:{  
+  shadowContainer: {
     backgroundColor: "#fff",
     marginRight: 10,
     marginBottom: 5,
@@ -320,7 +465,22 @@ const styles = StyleSheet.create({
     shadowColor: "black",
     shadowOpacity: 1.0,
     justifyContent: "center",
-    width: "100%"    
+    width: "100%"
+  },
+  IconContainer: {
+    flexDirection: 'row',
+    backgroundColor: "#fff",
+    marginRight: 10,
+    marginBottom: 5,
+    marginTop: 5,
+    borderRadius: 10,
+    padding: 2,
+    shadowOffset: { width: 10, height: 10 },
+    shadowColor: "black",
+    shadowOpacity: 1.0,
+    justifyContent: "center",
+    width: "100%",
+    flexWrap: 'wrap'
   },
   container: {
     flex: 1,
