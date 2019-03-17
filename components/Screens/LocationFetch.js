@@ -14,6 +14,7 @@ import {
 import firebase from "react-native-firebase";
 import RNGooglePlaces from "react-native-google-places";
 import { TextInput, Button } from "react-native-paper"
+import {confidenceSort} from "../Sorts/ConfidenceSort"
 
 export default class LocationFetch extends Component {
   constructor(props) {
@@ -58,7 +59,7 @@ export default class LocationFetch extends Component {
   
 
   getQuestions = (place) => {
-    this.ref.where("place_id", "==", place.placeID).onSnapshot(this.onCollectionUpdate);// match the place_id and get questions about that place
+    this.ref.where("place_id", "==", place.placeID).orderBy("confidence_sort", "desc").onSnapshot(this.onCollectionUpdate);// match the place_id and get questions about that place
   }
 
   onCollectionUpdate = querySnapshot => {
@@ -188,10 +189,12 @@ export default class LocationFetch extends Component {
                           )
                           this.ref.doc(docID).collection('upvotedBy').add({ userID: this.state.user })
                           this.ref.doc(docID).update({ upvote: upvotes + 1, downvote: downvotes - 1 })
+                          this.ref.doc(docID).update({ confidence_sort: confidenceSort(upvotes + 1, upvotes+downvotes) })
                         }
                         else {
                           this.ref.doc(docID).collection('upvotedBy').add({ userID: this.state.user })
                           this.ref.doc(docID).update({ upvote: upvotes + 1 })
+                          this.ref.doc(docID).update({ confidence_sort: confidenceSort(upvotes + 1, upvotes+downvotes+1) })
                         }
                       }
                     )
@@ -229,10 +232,12 @@ export default class LocationFetch extends Component {
                           )
                           this.ref.doc(docID).collection('downvotedBy').add({ userID: this.state.user })
                           this.ref.doc(docID).update({ downvote: downvotes + 1, upvote: upvotes - 1 })
+                          this.ref.doc(docID).update({ confidence_sort: confidenceSort(upvotes - 1, upvotes+downvotes) })
                         }
                         else {
                           this.ref.doc(docID).collection('downvotedBy').add({ userID: this.state.user })
                           this.ref.doc(docID).update({ downvote: downvotes + 1 })
+                          this.ref.doc(docID).update({ confidence_sort: confidenceSort(upvotes, upvotes+downvotes+1) })
                         }
                       }
                     )
