@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import {
-  Platform,
   StyleSheet,
   Text,
   View,
@@ -9,15 +8,16 @@ import {
   FlatList,
   Dimensions,
   Alert,
-  ActivityIndicator,
-  ScrollView
+  ActivityIndicator  
 } from "react-native";
 import Icon from "react-native-vector-icons/SimpleLineIcons";
 import firebase from "react-native-firebase";
+import ImagePicker from 'react-native-image-picker';
 import RNGooglePlaces from "react-native-google-places";
 import { TextInput, Button } from "react-native-paper"
 import { confidenceSort } from "../Sorts/ConfidenceSort"
-
+import FullWidthImage from "../CustomLibrary/FullWidthImage"
+const CommentsEmpty = require("../../src/images/comments_empty.jpg");
 export default class LocationFetch extends Component {
   constructor(props) {
     super(props);
@@ -30,10 +30,14 @@ export default class LocationFetch extends Component {
       question: '',// state for textinput to ask a question
       loading: false,// for when we submit a question
       user: null,// a state to hold the value of current user email
-      user_email: null
+      user_email: null,
+      imageSource: [],
+      QuestionsLoading: false,
+      ImageUploadLoading: false
     };
     this.user = firebase.firestore().collection("Users")
     this.ref = firebase.firestore().collection("Questions")
+    this.refStorage = firebase.storage()
   }
 
   componentDidMount() {
@@ -54,47 +58,42 @@ export default class LocationFetch extends Component {
               this.setState({ user_email: doc.data().FullName });
             }
           )
-
         }
       )
   }
 
 
   getQuestions = (place) => {
-    this.ref.where("place_id", "==", place.placeID).orderBy("confidence_sort", "desc").onSnapshot(this.onCollectionUpdate);// match the place_id and get questions about that place
+    this.ref.where("place_id", "==", place.placeID)
+    .orderBy("confidence_sort", "desc")
+    .onSnapshot(this.onCollectionUpdate);// match the place_id and get questions about that place
   }
 
   onCollectionUpdate = querySnapshot => {
     if (querySnapshot.empty) {
-      this.setState({
-        questions: [{ question: "" }]//for if there are no questions
-      });
+      console.log("No questions")
+      this.setState({questions:[]})
     }
     else {
-      const questions = [];
+      const questions = [];      
       querySnapshot.forEach(doc => {
-
-        const { question, upvote, downvote, asked_by, asked_by_name } = doc.data();
-
+        const { question, upvote, downvote, asked_by, asked_by_name, image, image_height } = doc.data();
         questions.push({
           questionID: doc.id,//name of the doc pertaining that question        
           question, //the question
           upvote,
           downvote,
           asked_by,
-          asked_by_name
+          asked_by_name,
+          image,
+          image_height
         })
-
         this.setState({
-          questions: questions // we push the entire data, each time, after each iteration as appending a state-array can lead to race conditions due to its asynchronous nature 
+          questions: questions, // we push the entire data, each time, after each iteration as appending a state-array can lead to race conditions due to its asynchronous nature 
+          QuestionsLoading: false
         });
       });
     }
-  };
-
-  onShowInputPress = () => {
-    console.log("show input");
-    this.setState({ showInput: true });
   };
 
   onOpenPickerPress = () => {
@@ -123,55 +122,8 @@ export default class LocationFetch extends Component {
       .catch(error => console.log(error.message));
   };
 
-  onQueryChange = text => {
-    this.setState({ addressQuery: text });
-    RNGooglePlaces.getAutocompletePredictions(this.state.addressQuery, {
-      country: "NG"
-    })
-      .then(places => {
-        console.log(places);
-        this.setState({ predictions: places });
-      })
-      .catch(error => console.log(error.message));
-  };
-
-  onSelectSuggestion(placeID) {
-    console.log(placeID);
-    // getPlaceByID call here
-    RNGooglePlaces.lookUpPlaceByID(placeID)
-      .then(results => console.log(results))
-      .catch(error => console.log(error.message));
-
-    this.setState({
-      showInput: false,
-      predictions: []
-    });
-  }
-
-  onGetCurrentPlacePress = () => {
-    RNGooglePlaces.getCurrentPlace()
-      .then(results => console.log(results))
-      .catch(error => console.log(error.message));
-  };
-
-  onGetPlaceByIDPress = () => {
-    RNGooglePlaces.lookUpPlaceByID("ChIJhRTXUeeROxARmk_Rp3PtIvI")
-      .then(results => console.log(results))
-      .catch(error => console.log(error.message));
-  };
-
-  onGetPlacesByIDsPress = () => {
-    RNGooglePlaces.lookUpPlacesByIDs([
-      "ChIJhRTXUeeROxARmk_Rp3PtIvI",
-      "ChIJy8Ny34yROxARPH21hx0a1gU",
-      "EiZNdXJ0YWxhIE11aGFtbWVkIERyaXZlLCBMYWdvcywgTmlnZXJpYQ"
-    ])
-      .then(results => console.log(results))
-      .catch(error => console.log(error.message));
-  };
-
   upvote = (docID, upvotes, downvotes) => {
-    this.setState({ loading: true })
+    this.setState({ upvote: upvotes + 1 });
     this.ref.doc(docID)
       .get()
       .then(update = (querySnapshot) => {
@@ -209,12 +161,12 @@ export default class LocationFetch extends Component {
           Alert.alert("Something went wrong")
         }
       })
-      .then(this.setState({ loading: false }))
+      
 
   }
 
   downvote = (docID, upvotes, downvotes) => {
-    this.setState({ loading: true });
+    this.setState({ downvote: downvotes + 1 });
     this.ref.doc(docID)
       .get()
       .then(update = (querySnapshot) => {
@@ -251,217 +203,224 @@ export default class LocationFetch extends Component {
         else {
           Alert.alert("Something went wrong")
         }
-      })
-    this.setState({ loading: false });
+      })    
   }
 
+  makeid = (length) => {
+    var text = "";
+    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  
+    for (var i = 0; i < length; i++)
+      text += possible.charAt(Math.floor(Math.random() * possible.length));
+  
+    return text;
+  }
+
+  openImagePicker = () => {
+    ImagePicker.showImagePicker((response) => {
+      console.log('Response = ', response);
+
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.error) {
+        console.log('ImagePicker Error: ', response.error);
+      } else if (response.customButton) {
+        console.log('User tapped custom button: ', response.customButton);
+      } else {
+        const source = { uri: response.uri, height: response.height, timestamp: response.timestamp };
+        console.log(source)
+        // You can also display the image using data:
+        // const source = { uri: 'data:image/jpeg;base64,' + response.data };        
+        this.setState({
+          imageSource: source,
+        });
+        Alert.alert("Image selected. Write a comment or press enter directly.")
+      }
+    });
+  }
+  
 
   postQuestion = () => {
     this.setState({ loading: true });
-    var data = {
-      question: this.state.question,
-      asked_by: this.state.user,
-      place_id: this.state.selectedPlace.placeID,
-      upvote: 0,
-      downvote: 0,
-      asked_by_name: this.state.user_email
-    };
-    this.ref
-      .add(data)
-      .then(this.setState({ loading: false, question: '' }))
-      .then(docRef => {
-        this.upvote(docRef.id, 0, 0)
+    console.log(this.state.imageSource)
+    if(this.state.imageSource == '' && this.state.question == '' ){
+      this.setState({ loading: false });
+      Alert.alert("Please select a picture to upload or write something.")
+    } else if(this.state.imageSource == ''){
+      console.log("Im here")
+      image_source = ''
+      var data = {
+        question: this.state.question,
+        asked_by: this.state.user,
+        place_id: this.state.selectedPlace.placeID,
+        upvote: 0,
+        downvote: 0,
+        asked_by_name: this.state.user_email,
+        image: image_source
+      };
+      this.ref
+        .add(data)
+        .then(this.setState({ loading: false, question: '', imageSource: '' }))
+        .then(docRef => {
+          this.upvote(docRef.id, 0, 0)
+        })
+        .catch(error => console.error("Error adding document: ", error))
+    } else{
+      this.setState({ImageUploadLoading: true})
+      const image = this.state.imageSource.uri
+      const imageRef = firebase.storage().ref().child(this.state.user + "/" + this.makeid(15) + ".jpg")
+      let mime = 'image/jpg'          
+      imageRef.put(image, { contentType: mime })        
+        .then(() => {          
+          return imageRef.getDownloadURL()
+        })
+      .then((url) => {
+        image_source = url
+        console.log(url);
+        var data = {
+          question: this.state.question,
+          asked_by: this.state.user,
+          place_id: this.state.selectedPlace.placeID,
+          upvote: 0,
+          downvote: 0,
+          asked_by_name: this.state.user_email,
+          image: image_source,
+          image_height: this.state.imageSource.height
+        };
+        this.ref
+          .add(data)
+          .then(this.setState({ loading: false, question: '', imageSource: '', ImageUploadLoading: false }))
+          .then(docRef => {
+            this.upvote(docRef.id, 0, 0)
+          })
+          .catch(error => console.error("Error adding document: ", error))
       })
-      .catch(error => console.error("Error adding document: ", error))
-
+      .catch((error) => {
+        console.log(error);
+      })  
+    }
   };// a question's collection will have the fields-the question, the asker's user id and the selected place id. Also, a collection of answers
-  keyExtractor = item => item.placeID;
 
-  renderItem = ({ item }) => {
-    return (
-      <View style={styles.listItemWrapper}>
-        <TouchableOpacity
-          style={styles.listItem}
-          onPress={() => this.onSelectSuggestion(item.placeID)}
-        >
-
-          <View style={styles.placeMeta}>
-            <Text style={styles.primaryText}>{item.primaryText}</Text>
-            <Text style={styles.secondaryText}>{item.secondaryText}</Text>
-          </View>
-        </TouchableOpacity>
-        <View style={styles.divider} />
-      </View>
-    );
-  };
+  _keyExtractor = (item, index) => item.questionID;
 
   render() {
+    QuestionsFetch = null;
+    if (this.state.QuestionsLoading == true) {
+      QuestionsFetch = (
+        <View>
+          <Text style={{ textAlign: 'center'}}>Fetching Questions</Text>
+          <ActivityIndicator size="large" />
+        </View>
+      );
+    } else if (this.state.ImageUploadLoading == true) {
+      QuestionsFetch = (
+        <View>
+          <Text style={{ textAlign: 'center'}}>Upload the image and making a post</Text>
+          <ActivityIndicator size="large" />
+        </View>
+      );
+    } else {
+      QuestionsFetch = (
+        <FlatList
+          data={this.state.questions}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              onPress={() => { navigation.navigate("AnswersScreen", { place: placeDetail, question: item, user: user }) }}
+            >
+              <View
+                elevation={3}
+                style={[styles.shadowContainer, { padding: 5 }]}
+              >
+                <Text style={{ textAlign: 'left', fontSize: 10 }}>u/{item.asked_by_name}</Text>
+                <Text style={{ textAlign: 'left', color: 'black' }}>{item.question}</Text>
+                {
+                  item.image != '' && (
+                    <FullWidthImage                      
+                      source={{ uri: item.image }}                 
+                     />
+                  )
+                }                              
+                
+                <View style={styles.IconContainer}>
+                  <Button
+                    onPress={() => this.upvote(item.questionID, item.upvote, item.downvote)}
+                    icon="thumb-up"
+                    compact
+                  >
+                    <Text>{item.upvote}</Text>
+                  </Button>
+                  <Button
+                    onPress={() => this.downvote(item.questionID, item.upvote, item.downvote)}
+                    icon="thumb-down"
+                    compact
+                  >
+                    <Text>{item.downvote}</Text>
+                  </Button>
+                </View>
+              </View>
+            </TouchableOpacity>
+          )}
+          ListEmptyComponent={(
+            <View>
+              <View
+                elevation={3}
+                style={[styles.shadowContainer, { padding: 5 }]}
+              >
+                <Text style={{ textAlign: 'center'}}>Oh my, the comments are so empty!</Text>
+                <Image
+                  source = {CommentsEmpty}
+                  style={{height:40, width: 40, alignSelf: 'center'}}
+                />
+              </View>
+            </View>
+          )}
+          extraData={this.state}
+          keyExtractor={this._keyExtractor}
+        />
+      )
+    }
     placeDetail = this.state.selectedPlace;
     navigation = this.props.navigation
     user = this.state.user
     return (
       <View style={styles.container}>
-        {this.state.showInput && (
           <View>
-            <View style={styles.inputWrapper}>
-              <TextInput
-                ref={input => (this.pickUpInput = input)}
-                style={styles.input}
-                value={this.props.addressQuery}
-                onChangeText={this.onQueryChange}
-                placeholder={"Current Location"}
-                placeholderTextColor="#9BABB4"
-                underlineColorAndroid={"transparent"}
-                autoFocus
-              />
+            <View style={{ flexDirection: 'row' }}>
+              <TouchableOpacity
+                style={[styles.inputLauncher, { width: "80%", height: 40 }]}
+                onPress={this.onOpenAutocompletePress}
+              >
+                <Text style={{ color: "#70818A" }}>Where to?</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[styles.button, { width: "20%", height: 40, backgroundColor: "#F3F7F9" }]}
+                onPress={this.onOpenPickerPress}
+              >
+                <Icon name='map' />
+              </TouchableOpacity>
             </View>
+            
 
-            <View style={styles.list}>
-              <FlatList
-                data={this.state.predictions}
-                renderItem={this.renderItem}
-                keyExtractor={this.keyExtractor}
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ flexGrow: 1 }}
-              />
-            </View>
-          </View>
-        )}
-
-        {!this.state.showInput && (
-          <View>
-
-            <View>
-              <View style={{ flexDirection: 'row' }}>
-                <TouchableOpacity
-                  style={[styles.inputLauncher, { width: "80%", height: 40 }]}
-                  onPress={this.onOpenAutocompletePress}
-                >
-                  <Text style={{ color: "#70818A" }}>Where to?</Text>
-                </TouchableOpacity>
-                {/* <TouchableOpacity
-                  style={styles.inputLauncher}
-                  onPress={this.onShowInputPress}
-                >
-                  <Text style={{ color: "#70818A" }}>Where to?</Text>
-                </TouchableOpacity> */}
-                {/* <TouchableOpacity
-                  style={styles.button}
-                  onPress={this.onOpenAutocompletePress}
-                >
-                  <Text style={styles.buttonText}>Search</Text>
-                </TouchableOpacity> */}
-                <TouchableOpacity
-                  style={[styles.button, { width: "20%", height: 40, backgroundColor: "#F3F7F9" }]}
-                  onPress={this.onOpenPickerPress}
-                >
-                  <Icon name='map' />
-                </TouchableOpacity>
-              </View>
-
-              {
-                placeDetail.name && (//Only be visible when a place is selected
-                  <View>
-                    <View
-                      elevation={3}
-                      style={[styles.shadowContainer]}
-                    >
-                      <Text style={{ color: "black", textAlign: 'center' }}>{placeDetail.name}</Text>
-                      <Text style={{ textAlign: 'center' }}>At</Text>
-                      <Text style={{ color: "black", textAlign: 'center' }}>{placeDetail.address}</Text>
-                      {/* <Text style={{ color: "red" }}>{placeDetail.phoneNumber}</Text>
-                      <Text style={{ color: "red" }}>{placeDetail.website}</Text> */}
-                    </View>
-                    <View>
-
-                      <ScrollView>
-                        {
-                          this.state.questions.map(iterate = (name, index) => {// Iterate the questions
-                            if (name.question == '') {
-                              return (
-                                <View>
-
-                                  <View
-                                    elevation={3}
-                                    style={[styles.shadowContainer, { padding: 5 }]}
-                                  >
-                                    <Text style={{ textAlign: 'center', fontWeight: "bold" }}>Oh my, the comments are so empty!</Text>
-                                  </View>
-
-                                </View>
-                              )
-                            }
-                            else {
-
-                              return (
-
-                                <TouchableOpacity
-                                  onPress={() => { navigation.navigate("AnswersScreen", { place: placeDetail, question: name, user: user }) }}
-                                >
-                                  <View
-                                    elevation={3}
-                                    style={[styles.shadowContainer, { padding: 5 }]}
-                                  >
-                                    <Text style={{ textAlign: 'left', fontSize: 10 }} key={index}>u/{name.asked_by_name}</Text>
-                                    <Text style={{ textAlign: 'left', color: 'black' }}>{name.question}</Text>
-                                    <View style={styles.IconContainer}>
-                                      <Button
-                                        onPress={() => this.upvote(name.questionID, name.upvote, name.downvote)}
-                                        icon="thumb-up"
-                                        compact
-                                      >
-                                        <Text>{name.upvote}</Text>
-                                      </Button>
-                                      <Button
-                                        onPress={() => this.downvote(name.questionID, name.upvote, name.downvote)}
-                                        icon="thumb-down"
-                                        compact
-                                      >
-                                        <Text>{name.downvote}</Text>
-                                      </Button>
-                                    </View>
-                                  </View>
-                                </TouchableOpacity>
-
-                              )
-                            }
-                          })
-                        }
-                      </ScrollView>
-
-                    </View>
+            {
+              placeDetail.name && (//Only be visible when a place is selected
+                <View style = {{height: '80%'}}>
+                  <View
+                    elevation={3}
+                    style={[styles.shadowContainer]}
+                  >
+                    <Text style={{ color: "black", textAlign: 'center' }}>{placeDetail.name}</Text>
+                    <Text style={{ textAlign: 'center' }}>At</Text>
+                    <Text style={{ color: "black", textAlign: 'center' }}>{placeDetail.address}</Text>
+                    {/* <Text style={{ color: "red" }}>{placeDetail.phoneNumber}</Text>
+                    <Text style={{ color: "red" }}>{placeDetail.website}</Text> */}
                   </View>
-
-
-                )
-              }
-              {/* 
-            <TouchableOpacity
-              style={styles.button}
-              onPress={this.onGetCurrentPlacePress}
-            >
-              <Text style={styles.buttonText}>
-                Get Current Place (not on Android Emulators)
-              </Text>
-            </TouchableOpacity> */}
-
-              {/* <TouchableOpacity
-              style={styles.button}
-              onPress={this.onGetPlaceByIDPress}
-            >
-              <Text style={styles.buttonText}>Get Place By ID</Text>
-            </TouchableOpacity> */}
-
-              {/* <TouchableOpacity
-              style={styles.button}
-              onPress={this.onGetPlacesByIDsPress}
-            >
-              <Text style={styles.buttonText}>Get Places By IDs (New)</Text>
-            </TouchableOpacity> */}
-            </View>
-
+                  <View style= {{ paddingBottom: 20}} >{QuestionsFetch}</View>   
+                </View>
+              )
+            }
           </View>
-        )}
+        
         {
           placeDetail.name && (
             <View style={{ flexDirection: 'row', position: 'absolute', bottom: 0 }}>
@@ -470,16 +429,24 @@ export default class LocationFetch extends Component {
                 placeholder="Shoot away!"
                 value={this.state.question}
                 onChangeText={question => this.setState({ question })}
-                style={{ width: "80%", backgroundColor: "#F3F7F9" }}
+                style={{ width: "70%", backgroundColor: "#F3F7F9" }}
               />
+              <Button
+                onPress={() => this.openImagePicker()}                
+                style={{ width: "15%", backgroundColor: "#F3F7F9" }}
+                compact
+                icon="image"
+              >
+              </Button>
               <Button
                 onPress={() => this.postQuestion()}
                 loading={this.state.loading}
-                style={{ width: "20%", backgroundColor: "#F3F7F9" }}
+                style={{ width: "15%", backgroundColor: "#F3F7F9" }}
                 compact
                 icon="send"
               >
               </Button>
+              
             </View>
           )
         }
