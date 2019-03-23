@@ -11,7 +11,7 @@ import {
 import { TextInput, Button } from "react-native-paper";
 import FullWidthImage from "../CustomLibrary/FullWidthImage";
 import firebase from "react-native-firebase";
-const CommentsEmpty = require("../../src/images/comments_empty.jpg");
+const CommentsEmpty = require("../../src/images/comments_empty.png");
 const loading_gif = require("../../src/images/loading.gif");
 export default class Profile extends Component {
   constructor(props) {
@@ -48,7 +48,7 @@ export default class Profile extends Component {
       });
     }
   };
-  _keyExtractor = (item) => item.questionID
+  _keyExtractor = item => item.questionID;
   _ListEmptyComponent = (
     <View>
       <View elevation={3} style={{ padding: 5 }}>
@@ -63,41 +63,39 @@ export default class Profile extends Component {
     </View>
   );
 
-  _renderItem = ({item}) => (
+  _renderItem = ({ item }) => (
     <View>
-      <Image 
-        source = {item.image == ''? loading_gif : {uri: item.image}}
-        style ={{height: 150, width: 150}}
-        resizeMode = 'cover'
+      <Image
+        source={item.image == "" ? loading_gif : { uri: item.image }}
+        style={{ height: 150, width: 150 }}
+        resizeMode="cover"
       />
     </View>
-  )
-  render () {
-    console.log(this.state.pictures)
-    console.log(this.user)
-    if(this.state.PicturesLoading == true){
+  );
+  render() {
+    console.log(this.state.pictures);
+    console.log(this.user);
+    if (this.state.PicturesLoading == true) {
       ListOfPictures = (
         <View>
-          <Text style={{ textAlign: "center" }}>Fetching Pictures, you take a chill pill</Text>
+          <Text style={{ textAlign: "center" }}>
+            Fetching Pictures, you take a chill pill
+          </Text>
           <ActivityIndicator size="large" />
         </View>
-      )
+      );
     } else {
       ListOfPictures = (
         <FlatList
-          data = {this.state.pictures}
-          renderItem = {this._renderItem}
-          keyExtractor = {this._keyExtractor}
-          extraData = {this.state}
-          ListEmptyComponent = {this._ListEmptyComponent}
-          numColumns = {3}
+          data={this.state.pictures}
+          renderItem={this._renderItem}
+          keyExtractor={this._keyExtractor}
+          extraData={this.state}
+          ListEmptyComponent={this._ListEmptyComponent}
+          numColumns={3}
         />
-      )
+      );
     }
-    return(
-      <View>
-        {ListOfPictures}
-      </View>
-    )
+    return <View>{ListOfPictures}</View>;
   }
 }

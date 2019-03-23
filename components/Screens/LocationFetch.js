@@ -23,7 +23,7 @@ import FullWidthImage from "../CustomLibrary/FullWidthImage";
 import _ from "lodash";
 import call from "react-native-phone-call";
 
-const CommentsEmpty = require("../../src/images/comments_empty.jpg");
+const CommentsEmpty = require("../../src/images/comments_empty.png");
 export default class LocationFetch extends Component {
   constructor(props) {
     super(props);
@@ -591,10 +591,14 @@ export default class LocationFetch extends Component {
       );
     } else if (this.state.ImageUploadLoading == true) {
       QuestionsFetch = (
-        <View>
-          <Text style={{ textAlign: "center" }}>
-            Uploading the image and making a post
-          </Text>
+        <View
+          style={{
+            justifyContent: "center",
+            alignItems: "center",
+            padding: 20
+          }}
+        >
+          <Text style={{ textAlign: "center" }}>Uploading Image</Text>
           <ActivityIndicator size="large" />
         </View>
       );
