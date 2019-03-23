@@ -1,0 +1,3 @@
+# Referenced at F:\Work Rough\Travel Guide New\TravelGuide\android\app\build\intermediates\manifests\full\debug\AndroidManifest.xml:29
+-keep class com.travelguide.MainApplication { <init>(...); }
+

@@ -8,6 +8,7 @@ import {
   FlatList,
   Dimensions,
   Alert,
+  Linking,
   ActivityIndicator,
   ScrollView
 } from "react-native";
@@ -18,6 +19,9 @@ import RNGooglePlaces from "react-native-google-places";
 import { TextInput, Button } from "react-native-paper";
 import { confidenceSort } from "../Sorts/ConfidenceSort";
 import FullWidthImage from "../CustomLibrary/FullWidthImage";
+import _ from "lodash";
+import call from "react-native-phone-call";
+
 const CommentsEmpty = require("../../src/images/comments_empty.jpg");
 export default class LocationFetch extends Component {
   constructor(props) {
@@ -47,6 +51,91 @@ export default class LocationFetch extends Component {
       this.getNameByEmail(user.email);
     });
   }
+
+  getPhoneWeb(number, web) {
+    const args = {
+      number: number,
+      prompt: false
+    };
+    PhoneNumber = null;
+    Website = null;
+    OutPut = null;
+    n = number;
+    w = web;
+    if (n != null) {
+      PhoneNumber = (
+        <TouchableOpacity onPress={() => call(args)}>
+          <View
+            style={{
+              paddingHorizontal: 15,
+              paddingVertical: 5,
+              alignItems: "center",
+              width: 50,
+              height: 30,
+              borderRadius: 5,
+              justifyContent: "center",
+              alignItems: "center",
+              backgroundColor: "#8BC34A"
+            }}
+          >
+            <Icon color="#fff" size={18} name="phone" />
+          </View>
+        </TouchableOpacity>
+      );
+    }
+    if (w != null) {
+      Website = (
+        <TouchableOpacity onPress={() => Linking.openURL(w)}>
+          <View
+            style={{
+              paddingHorizontal: 15,
+              paddingVertical: 5,
+              alignItems: "center",
+              borderRadius: 5,
+              justifyContent: "center",
+              alignItems: "center",
+              flexDirection: "row"
+            }}
+          >
+            <View style={{ paddingRight: 5 }}>
+              <Icon name="link" />
+            </View>
+            <Text style={{ fontWeight: "bold", color: "#3F51B5" }}>{w}</Text>
+          </View>
+        </TouchableOpacity>
+      );
+    }
+    return (
+      <View style={{ flexDirection: "row", paddingRight: 20 }}>
+        <View style={{ width: "80%", alignItems: "flex-start" }}>
+          {Website}
+        </View>
+        <View style={{ width: "20%", alignItems: "flex-end" }}>
+          {PhoneNumber}
+        </View>
+      </View>
+    );
+  }
+
+  getRatings(ratings) {
+    R = Math.round(ratings);
+    return R;
+  }
+
+  getTypes(details) {
+    Types = null;
+    if (details.length == 0) {
+      return (Types = null);
+    }
+    if (details.length > 0) {
+      temp = details[0];
+      temp2 = temp.replace("_", " ");
+      temp3 = temp2.replace("_", " ");
+      Types = _.startCase(_.toLower(temp3));
+      return Types;
+    }
+  }
+
   getNameByEmail = email => {
     console.log("in here");
     this.user
@@ -104,9 +193,9 @@ export default class LocationFetch extends Component {
   };
 
   onOpenPickerPress = () => {
-    console.log("picker");
     RNGooglePlaces.openPlacePickerModal()
       .then(place => {
+        console.log(place);
         this.setState({
           selectedPlace: place,
           questions: []
@@ -385,8 +474,8 @@ export default class LocationFetch extends Component {
       }}
     >
       <View elevation={3} style={[styles.shadowContainer, { padding: 5 }]}>
-        <TouchableOpacity 
-          onPress = {() => {
+        <TouchableOpacity
+          onPress={() => {
             navigation.navigate("ProfileScreen", {
               user: item.asked_by
             });
@@ -400,7 +489,7 @@ export default class LocationFetch extends Component {
           {item.question}
         </Text>
         {item.image != "" && <FullWidthImage source={{ uri: item.image }} />}
-          
+
         <View style={styles.IconContainer}>
           <Button
             onPress={() =>
@@ -474,39 +563,128 @@ export default class LocationFetch extends Component {
     return (
       <View style={styles.container}>
         <View>
-          <View style={{ flexDirection: "row" }}>
-            <TouchableOpacity
-              style={[styles.inputLauncher, { width: "80%", height: 40 }]}
-              onPress={this.onOpenAutocompletePress}
+          {/* Topbar Search and Map Button Start */}
+          <View
+            style={{
+              flexDirection: "row",
+              height: 100,
+              backgroundColor: "#fff",
+              padding: 10
+            }}
+          >
+            <View style={{ width: "75%", justifyContent: "center" }}>
+              <TouchableOpacity
+                style={[styles.inputLauncher, { height: 40, borderRadius: 15 }]}
+                onPress={this.onOpenAutocompletePress}
+              >
+                <View style={{ flexDirection: "row" }}>
+                  <View style={{ justifyContent: "center", padding: 5 }}>
+                    <Icon name="magnifier" size={15} />
+                  </View>
+                  <Text style={{ color: "#70818A", padding: 5 }}>
+                    Search for places
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+            <View
+              style={{
+                width: "25%",
+                alignItems: "center",
+                justifyContent: "center"
+              }}
             >
-              <Text style={{ color: "#70818A" }}>Where to?</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.button,
-                { width: "20%", height: 40, backgroundColor: "#F3F7F9" }
-              ]}
-              onPress={this.onOpenPickerPress}
-            >
-              <Icon name="map" />
-            </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.button,
+                  {
+                    width: 80,
+                    height: 80,
+                    backgroundColor: "#F3F7F9",
+                    borderRadius: 80 / 2
+                  }
+                ]}
+                onPress={this.onOpenPickerPress}
+              >
+                <Icon name="map" size={20} />
+              </TouchableOpacity>
+            </View>
           </View>
-
+          {/* Topbar Search and Map Button Ends */}
+          <View style={styles.LineBorder} />
           {placeDetail.name && ( //Only be visible when a place is selected
             <View style={{ height: "87%" }}>
               <ScrollView>
-                <View elevation={3} style={[styles.shadowContainer]}>
-                  <Text style={{ color: "black", textAlign: "center" }}>
+                {/* Image Section  Starts*/}
+                <View style={{ height: 200, backgroundColor: "black" }} />
+                {/* Image Section  Ends*/}
+                {/* Place Name Section */}
+
+                <View style={styles.NameHeader}>
+                  <View style={{ alignItems: "flex-end" }}>
+                    <View
+                      style={{
+                        backgroundColor: "#4CAF50",
+                        height: 25,
+                        width: 50,
+                        borderRadius: 50 / 2,
+                        paddingHorizontal: 10,
+                        alignItems: "center",
+                        flexDirection: "row",
+                        justifyContent: "space-evenly"
+                      }}
+                    >
+                      <Icon color="#fff" name="star" />
+
+                      <Text style={{ color: "#fff", fontWeight: "bold" }}>
+                        {this.getRatings(placeDetail.rating)}
+                      </Text>
+                    </View>
+                  </View>
+                  <Text
+                    style={{
+                      color: "black",
+                      fontSize: 20,
+                      fontWeight: "bold"
+                    }}
+                  >
                     {placeDetail.name}
                   </Text>
-                  <Text style={{ textAlign: "center" }}>At</Text>
-                  <Text style={{ color: "black", textAlign: "center" }}>
-                    {placeDetail.address}
-                  </Text>
-                  {/* <Text style={{ color: "red" }}>{placeDetail.phoneNumber}</Text>
-                      <Text style={{ color: "red" }}>{placeDetail.website}</Text> */}
+                  <View style={{ flexDirection: "row" }}>
+                    <View style={{ width: "5%" }}>
+                      <Icon name="location-pin" />
+                    </View>
+                    <View style={{ width: "95%" }}>
+                      <Text style={{ fontWeight: "bold" }}>
+                        {this.getTypes(placeDetail.types)}
+                      </Text>
+                    </View>
+                  </View>
                 </View>
+                <View style={styles.LineBorder} />
+
+                {/* Place Name Section */}
+                {/* Place Address Section */}
+
+                <View style={styles.addressBar}>
+                  <View style={{ paddingVertical: 10, paddingHorizontal: 15 }}>
+                    <Text style={{ color: "black", fontWeight: "bold" }}>
+                      ADDRESS
+                    </Text>
+                  </View>
+                  <View style={{ height: 1, backgroundColor: "#EDEEF3" }} />
+                  <View style={{ paddingHorizontal: 15, paddingVertical: 5 }}>
+                    <Text style={{ color: "black" }}>
+                      {placeDetail.address}
+                    </Text>
+                  </View>
+                  {this.getPhoneWeb(
+                    placeDetail.phoneNumber,
+                    placeDetail.website
+                  )}
+                </View>
+                {/* Place Address Section Ends*/}
+
                 <View style={{ paddingBottom: 20 }}>{QuestionsFetch}</View>
               </ScrollView>
             </View>
@@ -545,6 +723,23 @@ export default class LocationFetch extends Component {
 }
 
 const styles = StyleSheet.create({
+  LineBorder: {
+    height: 4
+  },
+  NameHeader: {
+    paddingTop: 5,
+    backgroundColor: "#fff",
+    justifyContent: "center",
+    paddingHorizontal: 20,
+    paddingBottom: 5
+  },
+  addressBar: {
+    paddingTop: 5,
+    paddingHorizontal: 5,
+    backgroundColor: "#fff",
+    justifyContent: "center",
+    paddingBottom: 5
+  },
   shadowContainer: {
     backgroundColor: "#fff",
     marginRight: 10,
@@ -567,9 +762,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: "#ffffff",
-    padding: 12,
-    paddingTop: 45
+    backgroundColor: "#EDEEF3"
   },
   button: {
     backgroundColor: "#263238",
@@ -585,7 +778,6 @@ const styles = StyleSheet.create({
   inputLauncher: {
     backgroundColor: "#F3F7F9",
     width: "100%",
-    borderRadius: 4,
     height: 35,
     justifyContent: "center",
     paddingLeft: 10,
