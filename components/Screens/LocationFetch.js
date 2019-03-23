@@ -10,13 +10,14 @@ import {
   Alert,
   Linking,
   ActivityIndicator,
-  ScrollView
+  ScrollView,
+  TextInput
 } from "react-native";
 import Icon from "react-native-vector-icons/SimpleLineIcons";
 import firebase from "react-native-firebase";
 import ImagePicker from "react-native-image-picker";
 import RNGooglePlaces from "react-native-google-places";
-import { TextInput, Button } from "react-native-paper";
+import { Button } from "react-native-paper";
 import { confidenceSort } from "../Sorts/ConfidenceSort";
 import FullWidthImage from "../CustomLibrary/FullWidthImage";
 import _ from "lodash";
@@ -50,6 +51,17 @@ export default class LocationFetch extends Component {
       this.setState({ user_email: user.email });
       this.getNameByEmail(user.email);
     });
+  }
+
+  getProfileText(name) {
+    n = name;
+    return n.charAt(0);
+  }
+
+  getProfileBackground() {
+    Colors = ["black", "#673AB7", "#3F51B5", "#FFC107", "#607D8B", "#4CAF50"];
+    ColorNumber = Math.floor(Math.random() * 6);
+    return Colors[ColorNumber];
   }
 
   getPhoneWeb(number, web) {
@@ -473,7 +485,7 @@ export default class LocationFetch extends Component {
         });
       }}
     >
-      <View elevation={3} style={[styles.shadowContainer, { padding: 5 }]}>
+      <View elevation={1} style={[styles.shadowContainer, { padding: 5 }]}>
         <TouchableOpacity
           onPress={() => {
             navigation.navigate("ProfileScreen", {
@@ -481,34 +493,89 @@ export default class LocationFetch extends Component {
             });
           }}
         >
-          <Text style={{ textAlign: "left", fontSize: 10 }}>
-            u/{item.asked_by_name}
-          </Text>
+          <View
+            style={{ flexDirection: "row", padding: 5, alignItems: "center" }}
+          >
+            <View style={{ width: "15%" }}>
+              <View
+                style={{
+                  height: 50,
+                  width: 50,
+                  borderRadius: 25,
+                  backgroundColor: this.getProfileBackground(),
+                  justifyContent: "center",
+                  alignItems: "center"
+                }}
+              >
+                <Text
+                  style={{ fontSize: 25, color: "#fff", fontWeight: "bold" }}
+                >
+                  {this.getProfileText(item.asked_by_name)}
+                </Text>
+              </View>
+            </View>
+            <View style={{ width: "85%" }}>
+              <Text
+                style={{
+                  fontWeight: "bold",
+                  fontSize: 18,
+                  color: "black",
+                  paddingLeft: 5
+                }}
+              >
+                {item.asked_by_name}
+              </Text>
+            </View>
+          </View>
         </TouchableOpacity>
-        <Text style={{ textAlign: "left", color: "black" }}>
-          {item.question}
-        </Text>
+        <View style={{ height: 1, backgroundColor: "#EDEEF3" }} />
+        <View style={{ padding: 10 }}>
+          <Text style={{ textAlign: "left", color: "black" }}>
+            {item.question}
+          </Text>
+        </View>
         {item.image != "" && <FullWidthImage source={{ uri: item.image }} />}
-
-        <View style={styles.IconContainer}>
-          <Button
-            onPress={() =>
-              this.upvote(item.questionID, item.upvote, item.downvote)
-            }
-            icon="thumb-up"
-            compact
-          >
-            <Text>{item.upvote}</Text>
-          </Button>
-          <Button
-            onPress={() =>
-              this.downvote(item.questionID, item.upvote, item.downvote)
-            }
-            icon="thumb-down"
-            compact
-          >
-            <Text>{item.downvote}</Text>
-          </Button>
+        <View style={{ height: 1, backgroundColor: "#EDEEF3" }} />
+        <View style={{ flexDirection: "row" }}>
+          <View style={styles.IconContainer}>
+            <Button
+              onPress={() =>
+                this.upvote(item.questionID, item.upvote, item.downvote)
+              }
+              color="#4CAF50"
+              icon="thumb-up"
+              compact
+            >
+              <Text>{item.upvote}</Text>
+            </Button>
+            <Button
+              onPress={() =>
+                this.downvote(item.questionID, item.upvote, item.downvote)
+              }
+              color="#F44336"
+              icon="thumb-down"
+              compact
+            >
+              <Text>{item.downvote}</Text>
+            </Button>
+          </View>
+          <View>
+            <TouchableOpacity
+              style={{
+                alignItems: "center",
+                padding: 6
+              }}
+              onPress={() => {
+                navigation.navigate("AnswersScreen", {
+                  place: placeDetail,
+                  question: item,
+                  user: user
+                });
+              }}
+            >
+              <Icon size={20} name="bubble" />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </TouchableOpacity>
@@ -533,28 +600,30 @@ export default class LocationFetch extends Component {
       );
     } else {
       QuestionsFetch = (
-        <FlatList
-          data={this.state.questions}
-          renderItem={this._renderItem}
-          ListEmptyComponent={
-            <View>
-              <View
-                elevation={3}
-                style={[styles.shadowContainer, { padding: 5 }]}
-              >
-                <Text style={{ textAlign: "center" }}>
-                  Oh my, the comments are so empty!
-                </Text>
-                <Image
-                  source={CommentsEmpty}
-                  style={{ height: 40, width: 40, alignSelf: "center" }}
-                />
+        <View style={{ paddingHorizontal: 10, paddingBottom: 60 }}>
+          <FlatList
+            data={this.state.questions}
+            renderItem={this._renderItem}
+            ListEmptyComponent={
+              <View>
+                <View
+                  elevation={3}
+                  style={[styles.shadowContainer, { padding: 5 }]}
+                >
+                  <Text style={{ textAlign: "center" }}>
+                    Sorry no reviews, Be the first to review this Place
+                  </Text>
+                  <Image
+                    source={CommentsEmpty}
+                    style={{ height: 40, width: 40, alignSelf: "center" }}
+                  />
+                </View>
               </View>
-            </View>
-          }
-          extraData={this.state}
-          keyExtractor={this._keyExtractor}
-        />
+            }
+            extraData={this.state}
+            keyExtractor={this._keyExtractor}
+          />
+        </View>
       );
     }
     placeDetail = this.state.selectedPlace;
@@ -684,39 +753,96 @@ export default class LocationFetch extends Component {
                   )}
                 </View>
                 {/* Place Address Section Ends*/}
+                <View style={{ height: 1, backgroundColor: "#EDEEF3" }} />
+
+                <View style={styles.addressBar}>
+                  <View style={{ paddingVertical: 10, paddingHorizontal: 15 }}>
+                    <Text style={{ color: "black", fontWeight: "bold" }}>
+                      REVIEWS
+                    </Text>
+                  </View>
+                </View>
+                <View style={{ height: 1, backgroundColor: "#EDEEF3" }} />
 
                 <View style={{ paddingBottom: 20 }}>{QuestionsFetch}</View>
               </ScrollView>
+              {/* Bottom Bar */}
+              {placeDetail.name && (
+                <View
+                  style={{
+                    marginHorizontal: 15
+                  }}
+                >
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      position: "absolute",
+                      bottom: 10,
+                      backgroundColor: "#F2F3F5",
+                      borderRadius: 50,
+                      justifyContent: "center"
+                    }}
+                  >
+                    <View style={{ width: "70%", padding: 10 }}>
+                      <TextInput
+                        placeholder="Share your opinion about this place"
+                        placeholderTextColor="#5F6267"
+                        value={this.state.question}
+                        onChangeText={question => this.setState({ question })}
+                        style={{
+                          width: "100%",
+                          borderRadius: 25,
+                          padding: 5
+                        }}
+                      />
+                    </View>
+                    <View
+                      style={{
+                        width: "15%",
+                        paddingVertical: 10,
+                        paddingRight: 5
+                      }}
+                    >
+                      <TouchableOpacity
+                        style={{
+                          height: 40,
+                          width: 40,
+                          borderRadius: 20,
+                          justifyContent: "center",
+                          alignItems: "center"
+                        }}
+                        onPress={() => this.openImagePicker()}
+                      >
+                        <Icon name="picture" color="#009688" size={24} />
+                      </TouchableOpacity>
+                    </View>
+                    <View
+                      style={{
+                        width: "15%",
+                        paddingVertical: 10,
+                        paddingRight: 5
+                      }}
+                    >
+                      <TouchableOpacity
+                        style={{
+                          height: 40,
+                          width: 40,
+                          borderRadius: 20,
+                          justifyContent: "center",
+                          alignItems: "center"
+                        }}
+                        onPress={() => this.postQuestion()}
+                      >
+                        <Icon name="note" color="#3F51B5" size={24} />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
+              )}
+              {/* Bottom Bar */}
             </View>
           )}
         </View>
-
-        {placeDetail.name && (
-          <View
-            style={{ flexDirection: "row", position: "absolute", bottom: 0 }}
-          >
-            <TextInput
-              label="Have an opinion about this place?"
-              placeholder="Shoot away!"
-              value={this.state.question}
-              onChangeText={question => this.setState({ question })}
-              style={{ width: "70%", backgroundColor: "#F3F7F9" }}
-            />
-            <Button
-              onPress={() => this.openImagePicker()}
-              style={{ width: "15%", backgroundColor: "#F3F7F9" }}
-              compact
-              icon="image"
-            />
-            <Button
-              onPress={() => this.postQuestion()}
-              loading={this.state.loading}
-              style={{ width: "15%", backgroundColor: "#F3F7F9" }}
-              compact
-              icon="send"
-            />
-          </View>
-        )}
       </View>
     );
   }
@@ -745,7 +871,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
     marginBottom: 5,
     marginTop: 5,
-    borderRadius: 10,
+    borderRadius: 1,
     padding: 2,
     shadowOffset: { width: 10, height: 10 },
     shadowColor: "black",
@@ -756,9 +882,7 @@ const styles = StyleSheet.create({
   IconContainer: {
     flexDirection: "row",
     backgroundColor: "#fff",
-    justifyContent: "flex-start",
-    width: "100%",
-    flexWrap: "wrap"
+    justifyContent: "flex-start"
   },
   container: {
     flex: 1,
