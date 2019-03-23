@@ -144,7 +144,9 @@ export default class Answers extends Component {
     <View>
       {console.log("empty")}
       <View elevation={3} style={{ padding: 15 }}>
-        <Text style={{ textAlign: "center", fontWeight: "bold" }}>
+        <Text
+          style={{ textAlign: "center", fontWeight: "bold", color: "#fff" }}
+        >
           No Comments, be the first to reply!
         </Text>
         <Image
