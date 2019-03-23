@@ -69,7 +69,15 @@ export default class Answers extends Component {
   _renderItem = ({ item }) => (
     <View style={{ padding: 20 }}>
       {console.log("not empty")}
-      <Text style={{ textAlign: "left" }}>u/{item.answered_by}</Text>
+      <TouchableOpacity 
+          onPress = {() => {
+            navigation.navigate("ProfileScreen", {
+              user: item.answered_by
+            });
+          }}
+        >
+        <Text style={{ textAlign: "left" }}>u/{item.answered_by}</Text>
+      </TouchableOpacity>
       <Text style={{ textAlign: "left", fontWeight: "bold" }}>
         {item.answer}
       </Text>

@@ -385,14 +385,22 @@ export default class LocationFetch extends Component {
       }}
     >
       <View elevation={3} style={[styles.shadowContainer, { padding: 5 }]}>
-        <Text style={{ textAlign: "left", fontSize: 10 }}>
-          u/{item.asked_by_name}
-        </Text>
+        <TouchableOpacity 
+          onPress = {() => {
+            navigation.navigate("ProfileScreen", {
+              user: item.asked_by
+            });
+          }}
+        >
+          <Text style={{ textAlign: "left", fontSize: 10 }}>
+            u/{item.asked_by_name}
+          </Text>
+        </TouchableOpacity>
         <Text style={{ textAlign: "left", color: "black" }}>
           {item.question}
         </Text>
         {item.image != "" && <FullWidthImage source={{ uri: item.image }} />}
-
+          
         <View style={styles.IconContainer}>
           <Button
             onPress={() =>

@@ -4,6 +4,7 @@ import { createStackNavigator, createAppContainer } from "react-navigation";
 // import the different screens
 import LocationFetch from "../Screens/LocationFetch";
 import Answers from "../Screens/Answers";
+import Profile from "../Screens/Profile";
 
 
 export default class AppNavigatorMain extends React.Component {
@@ -17,7 +18,8 @@ export default class AppNavigatorMain extends React.Component {
 const AppNavigator = createStackNavigator(
   {
     LocationFetchScreen:{screen: LocationFetch},
-    AnswersScreen:{screen: Answers}
+    AnswersScreen:{screen: Answers},
+    ProfileScreen: {screen: Profile}
   },
   {
     headerMode: "none"
