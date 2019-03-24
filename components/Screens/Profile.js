@@ -17,15 +17,18 @@ const loading_gif = require("../../src/images/loading.gif");
 export default class Profile extends Component {
   constructor(props) {
     super(props);
-    this.user = this.props.navigation.getParam("user", null); // the current user email
+    this.user_email = this.props.navigation.getParam("user", null); // the current user email
     this.state = {
       pictures: [],
-      PicturesLoading: true
+      PicturesLoading: true,
+      user: ''
     };
+    this.user = firebase.firestore().collection("Users");
+    this.getNameByEmail(this.user_email)
     this.ref = firebase
       .firestore()
       .collection("Questions")
-      .where("asked_by", "==", this.user);
+      .where("asked_by", "==", this.user_email);
     this.ref.onSnapshot(this.onCollectionUpdate);
   }
   onCollectionUpdate = querySnapshot => {
@@ -49,6 +52,19 @@ export default class Profile extends Component {
       });
     }
   };
+  getNameByEmail = email => {
+    this.user
+      .where("email", "==", email)
+      .get()
+      .then(
+        (info = query => {
+          query.forEach(doc => {
+            this.setState({ user: doc.data().FullName });
+          });
+        })
+      );
+  };
+
   _keyExtractor = item => item.questionID;
   _ListEmptyComponent = (
     <View>
@@ -86,8 +102,6 @@ export default class Profile extends Component {
   }
 
   render() {
-    console.log(this.state.pictures);
-    console.log(this.user);
     if (this.state.PicturesLoading == true) {
       ListOfPictures = (
         <View>
@@ -117,7 +131,7 @@ export default class Profile extends Component {
             color="white"
             onPress={() => this.props.navigation.goBack()}
           />
-          <Appbar.Content title={this.user} color="white" />
+          <Appbar.Content title={this.state.user} color="white" />
         </Appbar.Header>
         <View
           style={{
@@ -137,7 +151,7 @@ export default class Profile extends Component {
               }}
             >
               <Text style={{ fontSize: 50, color: "#fff", fontWeight: "bold" }}>
-                {this.getProfileText(this.user)}
+                {this.getProfileText(this.state.user)}
               </Text>
             </View>
           </View>

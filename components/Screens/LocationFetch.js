@@ -177,8 +177,7 @@ export default class LocationFetch extends Component {
       .then(
         (info = query => {
           query.forEach(doc => {
-            console.log(doc.data().FullName + "in hereat");
-            this.setState({ user_email: doc.data().FullName });
+            this.setState({ user: doc.data().FullName });
           });
         })
       );
@@ -448,7 +447,6 @@ export default class LocationFetch extends Component {
       this.setState({ loading: false });
       Alert.alert("Please select a picture to upload or write something.");
     } else if (this.state.imageSource == "") {
-      console.log("Im here");
       image_source = "";
       var data = {
         question: this.state.question,
@@ -456,7 +454,7 @@ export default class LocationFetch extends Component {
         place_id: this.state.selectedPlace.placeID,
         upvote: 0,
         downvote: 0,
-        asked_by_name: this.state.user_email,
+        asked_by_name: this.state.user,
         image: image_source
       };
       this.ref
@@ -488,7 +486,7 @@ export default class LocationFetch extends Component {
             place_id: this.state.selectedPlace.placeID,
             upvote: 0,
             downvote: 0,
-            asked_by_name: this.state.user_email,
+            asked_by_name: this.state.user,
             image: image_source,
             image_height: this.state.imageSource.height
           };
