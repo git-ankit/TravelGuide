@@ -514,6 +514,7 @@ export default class LocationFetch extends Component {
   _keyExtractor = (item, index) => item.questionID;
   _renderItem = ({ item }) => (
     <TouchableOpacity
+      activeOpacity = {1}
       onPress={() => {
         navigation.navigate("AnswersScreen", {
           place: placeDetail,
@@ -764,6 +765,7 @@ export default class LocationFetch extends Component {
                 </View>
               </View>
             }
+            initialNumToRender = {5}
             extraData={this.state}
             keyExtractor={this._keyExtractor}
           />
@@ -835,7 +837,7 @@ export default class LocationFetch extends Component {
               <View style={{ height: "87%" }}>
                 <ScrollView>
                   {/* Image Section  Starts*/}
-                  <View style={{ height: 300, backgroundColor: "#fff" }}>
+                  <View style={this.state.photoPresent == true ? { height: 300, backgroundColor: "#fff" }: {height: 0}}>
                     {PlacePhoto}
                   </View>
                   {/* Image Section  Ends*/}

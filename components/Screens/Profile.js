@@ -13,7 +13,7 @@ import { Appbar } from "react-native-paper";
 import FullWidthImage from "../CustomLibrary/FullWidthImage";
 import firebase from "react-native-firebase";
 const CommentsEmpty = require("../../src/images/comments_empty.png");
-const loading_gif = require("../../src/images/loading.gif");
+const ImageEmpty = require("../../src/images/no_image.png");
 export default class Profile extends Component {
   constructor(props) {
     super(props);
@@ -83,7 +83,7 @@ export default class Profile extends Component {
       style={{ padding: 1, justifyContent: "center", alignItems: "center" }}
     >
       <Image
-        source={item.image == "" ? loading_gif : { uri: item.image }}
+        source={item.image == "" ? ImageEmpty : { uri: item.image }}
         style={{ height: 132, width: 132 }}
         resizeMode="cover"
       />
