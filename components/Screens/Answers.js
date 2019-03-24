@@ -22,7 +22,8 @@ export default class Answers extends Component {
     super(props);
     this.selectedPlace = this.props.navigation.getParam("place", null); // place that was selected in the last page
     this.question = this.props.navigation.getParam("question", null); // question from the last page
-    this.user = this.props.navigation.getParam("user", null); // the current user email
+    this.user = this.props.navigation.getParam("user_email", null); // the current user email
+    this.user_name = this.props.navigation.getParam("user_name", null);
     this.state = {
       answer: "", // state to hold the value of the textinput to answer the question
       answers: [], // an array to display the list of answers
@@ -45,11 +46,12 @@ export default class Answers extends Component {
     } else {
       const answers = [];
       querySnapshot.forEach(doc => {
-        const { answer, answered_by } = doc.data();
+        const { answer, answered_by, answered_by_name } = doc.data();
         answers.push({
           AnswerID: doc.id,
           answer,
-          answered_by
+          answered_by,
+          answered_by_name
         });
         this.setState({
           answers: answers,
@@ -73,7 +75,8 @@ export default class Answers extends Component {
     this.setState({ loading: true });
     var data = {
       answer: this.state.answer,
-      answered_by: this.user
+      answered_by: this.user,
+      answered_by_name: this.user_name
     };
     this.ref.add(data).then(this.setState({ loading: false, answer: "" }));
   };
@@ -107,7 +110,7 @@ export default class Answers extends Component {
                 <Text
                   style={{ fontSize: 25, color: "#fff", fontWeight: "bold" }}
                 >
-                  {this.getProfileText(item.answered_by)}
+                  {this.getProfileText(item.answered_by_name)}
                 </Text>
               </View>
             </View>
@@ -120,7 +123,7 @@ export default class Answers extends Component {
                   paddingLeft: 5
                 }}
               >
-                {item.answered_by}
+                {item.answered_by_name}
               </Text>
             </View>
           </View>

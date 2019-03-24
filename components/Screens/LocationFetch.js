@@ -518,7 +518,8 @@ export default class LocationFetch extends Component {
         navigation.navigate("AnswersScreen", {
           place: placeDetail,
           question: item,
-          user: user
+          user_email: user,
+          user_name : user_name
         });
       }}
     >
@@ -772,6 +773,7 @@ export default class LocationFetch extends Component {
     placeDetail = this.state.selectedPlace;
     navigation = this.props.navigation;
     user = this.state.user_email;
+    user_name = this.state.user;
     return (
       <View style={styles.container}>
         <View>
