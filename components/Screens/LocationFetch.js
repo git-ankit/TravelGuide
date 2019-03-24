@@ -39,7 +39,9 @@ export default class LocationFetch extends Component {
       user_email: null,
       imageSource: [],
       QuestionsLoading: false,
-      ImageUploadLoading: false
+      ImageUploadLoading: false,
+      placePhoto: null,
+      photoPresent: false
     };
     this.user = firebase.firestore().collection("Users");
     this.ref = firebase.firestore().collection("Questions");
@@ -212,6 +214,14 @@ export default class LocationFetch extends Component {
           selectedPlace: place,
           questions: []
         });
+        RNGooglePlaces.getPlacePhotos(place.placeID).then(photoMeta => {
+          if (photoMeta[0].uri != null) {
+            this.setState({
+              placePhoto: photoMeta,
+              photoPresent: true
+            });
+          }
+        });
         this.getQuestions(place); // As soon as we select the place, load the questions
         console.log(place);
       })
@@ -224,6 +234,14 @@ export default class LocationFetch extends Component {
         this.setState({
           selectedPlace: place,
           questions: []
+        });
+        RNGooglePlaces.getPlacePhotos(place.placeID).then(photoMeta => {
+          if (photoMeta[0].uri != null) {
+            this.setState({
+              placePhoto: photoMeta,
+              photoPresent: true
+            });
+          }
         });
         this.getQuestions(place); // As soon as we select the place, load the questions
       })
@@ -581,6 +599,17 @@ export default class LocationFetch extends Component {
     </TouchableOpacity>
   );
   render() {
+    PlacePhoto = null;
+    console.log(this.state.photoPresent);
+    if (this.state.photoPresent == true) {
+      PlacePhoto = (
+        <Image
+          style={{ height: 300 }}
+          source={{ uri: this.state.placePhoto[0].uri }}
+          resizeMode="contain"
+        />
+      );
+    }
     QuestionsFetch = null;
     if (this.state.QuestionsLoading == true) {
       QuestionsFetch = (
@@ -689,7 +718,11 @@ export default class LocationFetch extends Component {
             <View style={{ height: "87%" }}>
               <ScrollView>
                 {/* Image Section  Starts*/}
-                <View style={{ height: 200, backgroundColor: "black" }} />
+                <View style={{ height: 300, backgroundColor: "#fff" }}>
+                  {PlacePhoto}
+                </View>
+                <View style={styles.LineBorder} />
+
                 {/* Image Section  Ends*/}
                 {/* Place Name Section */}
 
