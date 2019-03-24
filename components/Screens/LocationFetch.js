@@ -24,6 +24,8 @@ import _ from "lodash";
 import call from "react-native-phone-call";
 
 const CommentsEmpty = require("../../src/images/comments_empty.png");
+const LoginBackgroundImage = require("../../src/LoginBG.png");
+
 export default class LocationFetch extends Component {
   constructor(props) {
     super(props);
@@ -41,7 +43,8 @@ export default class LocationFetch extends Component {
       QuestionsLoading: false,
       ImageUploadLoading: false,
       placePhoto: null,
-      photoPresent: false
+      photoPresent: false,
+      placeSelected: false
     };
     this.user = firebase.firestore().collection("Users");
     this.ref = firebase.firestore().collection("Questions");
@@ -64,6 +67,22 @@ export default class LocationFetch extends Component {
     Colors = ["black", "#673AB7", "#3F51B5", "#FFC107", "#607D8B", "#4CAF50"];
     ColorNumber = Math.floor(Math.random() * 6);
     return Colors[ColorNumber];
+  }
+
+  getQuotes() {
+    Quotes = [
+      "“Man cannot discover new oceans unless he has the courage to lose sight of the shore.”",
+      "“Remember that happiness is a way of travel – not a destination.”",
+      "“It is not down in any map; true places never are.”",
+      "“Life is either a daring adventure or nothing at all.”",
+      "“Better to see something once than hear about it a thousand times”",
+      "“Adventure may hurt you but monotony will kill you.”",
+      "“Dare to live the life you’ve always wanted.”",
+      "“Wanderlust: n. a strong desire for or impulse to wander or travel and explore the world”",
+      "“Don't listen to what they say. Go see.”"
+    ];
+    QuoteNumber = Math.floor(Math.random() * 9);
+    return Quotes[QuoteNumber];
   }
 
   getPhoneWeb(number, web) {
@@ -212,7 +231,8 @@ export default class LocationFetch extends Component {
         console.log(place);
         this.setState({
           selectedPlace: place,
-          questions: []
+          questions: [],
+          placeSelected: true
         });
         RNGooglePlaces.getPlacePhotos(place.placeID).then(photoMeta => {
           if (photoMeta[0].uri != null) {
@@ -233,7 +253,8 @@ export default class LocationFetch extends Component {
       .then(place => {
         this.setState({
           selectedPlace: place,
-          questions: []
+          questions: [],
+          placeSelected: true
         });
         RNGooglePlaces.getPlacePhotos(place.placeID).then(photoMeta => {
           if (photoMeta[0].uri != null) {
@@ -599,6 +620,97 @@ export default class LocationFetch extends Component {
     </TouchableOpacity>
   );
   render() {
+    PlaceNotSelected = (
+      <View
+        style={{ padding: 15, justifyContent: "center", alignItems: "center" }}
+      >
+        <Text
+          style={{
+            fontSize: 30,
+            textAlign: "center",
+            fontWeight: "bold",
+            color: "#222222",
+            paddingBottom: 10,
+            paddingTop: 100
+          }}
+        >
+          Travel Guide
+        </Text>
+        <View
+          style={{
+            height: 350,
+            justifyContent: "center",
+            alignItems: "center"
+          }}
+        >
+          <Image
+            style={{
+              height: 325
+            }}
+            resizeMode="center"
+            source={LoginBackgroundImage}
+          />
+        </View>
+        {/* Topbar Search and Map Button Start */}
+        <View
+          style={{
+            flexDirection: "row",
+            height: 100,
+            padding: 10,
+            justifyContent: "center",
+            alignItems: "center"
+          }}
+        >
+          <View style={{ width: "75%", justifyContent: "center" }}>
+            <TouchableOpacity
+              style={[styles.inputLauncher2, { height: 40, borderRadius: 15 }]}
+              onPress={this.onOpenAutocompletePress}
+            >
+              <View style={{ flexDirection: "row" }}>
+                <View style={{ justifyContent: "center", padding: 5 }}>
+                  <Icon name="magnifier" color="#fff" size={15} />
+                </View>
+                <Text style={{ color: "#fff", padding: 5 }}>
+                  Search for places
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+          <View
+            style={{
+              width: "25%",
+              alignItems: "center",
+              justifyContent: "center"
+            }}
+          >
+            <TouchableOpacity
+              style={[
+                styles.button,
+                {
+                  width: 80,
+                  height: 80,
+                  backgroundColor: "#222222",
+                  borderRadius: 80 / 2
+                }
+              ]}
+              onPress={this.onOpenPickerPress}
+            >
+              <Icon name="map" color="#fff" size={20} />
+            </TouchableOpacity>
+          </View>
+        </View>
+        {/* Topbar Search and Map Button Ends */}
+        <View style={styles.LineBorder} />
+        <View>
+          <Text style={{ fontWeight: "bold", fontSize: 20, paddingTop: 50 }}>
+            {this.getQuotes()}
+          </Text>
+        </View>
+      </View>
+    );
+    if (this.state.placeSelected == true) {
+      PlaceNotSelected = null;
+    }
     PlacePhoto = null;
     console.log(this.state.photoPresent);
     if (this.state.photoPresent == true) {
@@ -665,218 +777,226 @@ export default class LocationFetch extends Component {
     return (
       <View style={styles.container}>
         <View>
-          {/* Topbar Search and Map Button Start */}
-          <View
-            style={{
-              flexDirection: "row",
-              height: 100,
-              backgroundColor: "#fff",
-              padding: 10
-            }}
-          >
-            <View style={{ width: "75%", justifyContent: "center" }}>
-              <TouchableOpacity
-                style={[styles.inputLauncher, { height: 40, borderRadius: 15 }]}
-                onPress={this.onOpenAutocompletePress}
-              >
-                <View style={{ flexDirection: "row" }}>
-                  <View style={{ justifyContent: "center", padding: 5 }}>
-                    <Icon name="magnifier" size={15} />
-                  </View>
-                  <Text style={{ color: "#70818A", padding: 5 }}>
-                    Search for places
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-            <View
-              style={{
-                width: "25%",
-                alignItems: "center",
-                justifyContent: "center"
-              }}
-            >
-              <TouchableOpacity
-                style={[
-                  styles.button,
-                  {
-                    width: 80,
-                    height: 80,
-                    backgroundColor: "#F3F7F9",
-                    borderRadius: 80 / 2
-                  }
-                ]}
-                onPress={this.onOpenPickerPress}
-              >
-                <Icon name="map" size={20} />
-              </TouchableOpacity>
-            </View>
-          </View>
-          {/* Topbar Search and Map Button Ends */}
-          <View style={styles.LineBorder} />
+          {PlaceNotSelected}
           {placeDetail.name && ( //Only be visible when a place is selected
-            <View style={{ height: "87%" }}>
-              <ScrollView>
-                {/* Image Section  Starts*/}
-                <View style={{ height: 300, backgroundColor: "#fff" }}>
-                  {PlacePhoto}
-                </View>
-                <View style={styles.LineBorder} />
-
-                {/* Image Section  Ends*/}
-                {/* Place Name Section */}
-
-                <View style={styles.NameHeader}>
-                  <View style={{ alignItems: "flex-end" }}>
-                    <View
-                      style={{
-                        backgroundColor: "#4CAF50",
-                        height: 25,
-                        width: 50,
-                        borderRadius: 50 / 2,
-                        paddingHorizontal: 10,
-                        alignItems: "center",
-                        flexDirection: "row",
-                        justifyContent: "space-evenly"
-                      }}
-                    >
-                      <Icon color="#fff" name="star" />
-
-                      <Text style={{ color: "#fff", fontWeight: "bold" }}>
-                        {this.getRatings(placeDetail.rating)}
-                      </Text>
-                    </View>
-                  </View>
-                  <Text
-                    style={{
-                      color: "black",
-                      fontSize: 20,
-                      fontWeight: "bold"
-                    }}
+            <View>
+              {/* Topbar Search and Map Button Start */}
+              <View
+                style={{
+                  flexDirection: "row",
+                  height: 100,
+                  backgroundColor: "#fff",
+                  padding: 10
+                }}
+              >
+                <View style={{ width: "75%", justifyContent: "center" }}>
+                  <TouchableOpacity
+                    style={[
+                      styles.inputLauncher,
+                      { height: 40, borderRadius: 15 }
+                    ]}
+                    onPress={this.onOpenAutocompletePress}
                   >
-                    {placeDetail.name}
-                  </Text>
-                  <View style={{ flexDirection: "row" }}>
-                    <View style={{ width: "5%" }}>
-                      <Icon name="location-pin" />
-                    </View>
-                    <View style={{ width: "95%" }}>
-                      <Text style={{ fontWeight: "bold" }}>
-                        {this.getTypes(placeDetail.types)}
+                    <View style={{ flexDirection: "row" }}>
+                      <View style={{ justifyContent: "center", padding: 5 }}>
+                        <Icon name="magnifier" size={15} />
+                      </View>
+                      <Text style={{ color: "#70818A", padding: 5 }}>
+                        Search for places
                       </Text>
                     </View>
-                  </View>
+                  </TouchableOpacity>
                 </View>
-                <View style={styles.LineBorder} />
-
-                {/* Place Name Section */}
-                {/* Place Address Section */}
-
-                <View style={styles.addressBar}>
-                  <View style={{ paddingVertical: 10, paddingHorizontal: 15 }}>
-                    <Text style={{ color: "black", fontWeight: "bold" }}>
-                      ADDRESS
-                    </Text>
-                  </View>
-                  <View style={{ height: 1, backgroundColor: "#EDEEF3" }} />
-                  <View style={{ paddingHorizontal: 15, paddingVertical: 5 }}>
-                    <Text style={{ color: "black" }}>
-                      {placeDetail.address}
-                    </Text>
-                  </View>
-                  {this.getPhoneWeb(
-                    placeDetail.phoneNumber,
-                    placeDetail.website
-                  )}
-                </View>
-                {/* Place Address Section Ends*/}
-                <View style={{ height: 1, backgroundColor: "#EDEEF3" }} />
-
-                <View style={styles.addressBar}>
-                  <View style={{ paddingVertical: 10, paddingHorizontal: 15 }}>
-                    <Text style={{ color: "black", fontWeight: "bold" }}>
-                      REVIEWS
-                    </Text>
-                  </View>
-                </View>
-                <View style={{ height: 1, backgroundColor: "#EDEEF3" }} />
-
-                <View style={{ paddingBottom: 20 }}>{QuestionsFetch}</View>
-              </ScrollView>
-              {/* Bottom Bar */}
-              {placeDetail.name && (
                 <View
                   style={{
-                    marginHorizontal: 15
+                    width: "25%",
+                    alignItems: "center",
+                    justifyContent: "center"
                   }}
                 >
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      position: "absolute",
-                      bottom: 10,
-                      backgroundColor: "#F2F3F5",
-                      borderRadius: 50,
-                      justifyContent: "center"
-                    }}
+                  <TouchableOpacity
+                    style={[
+                      styles.button,
+                      {
+                        width: 80,
+                        height: 80,
+                        backgroundColor: "#F3F7F9",
+                        borderRadius: 80 / 2
+                      }
+                    ]}
+                    onPress={this.onOpenPickerPress}
                   >
-                    <View style={{ width: "70%", padding: 10 }}>
-                      <TextInput
-                        placeholder="Share your opinion about this place"
-                        placeholderTextColor="#5F6267"
-                        value={this.state.question}
-                        onChangeText={question => this.setState({ question })}
+                    <Icon name="map" size={20} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+              {/* Topbar Search and Map Button Ends */}
+              <View style={styles.LineBorder} />
+              <View style={{ height: "87%" }}>
+                <ScrollView>
+                  {/* Image Section  Starts*/}
+                  <View style={{ height: 300, backgroundColor: "#fff" }}>
+                    {PlacePhoto}
+                  </View>
+                  {/* Image Section  Ends*/}
+                  {/* Place Name Section */}
+
+                  <View style={styles.NameHeader}>
+                    <View style={{ alignItems: "flex-end" }}>
+                      <View
                         style={{
-                          width: "100%",
-                          borderRadius: 25,
-                          padding: 5
+                          backgroundColor: "#4CAF50",
+                          height: 25,
+                          width: 50,
+                          borderRadius: 50 / 2,
+                          paddingHorizontal: 10,
+                          alignItems: "center",
+                          flexDirection: "row",
+                          justifyContent: "space-evenly"
                         }}
-                      />
+                      >
+                        <Icon color="#fff" name="star" />
+
+                        <Text style={{ color: "#fff", fontWeight: "bold" }}>
+                          {this.getRatings(placeDetail.rating)}
+                        </Text>
+                      </View>
                     </View>
-                    <View
+                    <Text
                       style={{
-                        width: "15%",
-                        paddingVertical: 10,
-                        paddingRight: 5
+                        color: "black",
+                        fontSize: 20,
+                        fontWeight: "bold"
                       }}
                     >
-                      <TouchableOpacity
-                        style={{
-                          height: 40,
-                          width: 40,
-                          borderRadius: 20,
-                          justifyContent: "center",
-                          alignItems: "center"
-                        }}
-                        onPress={() => this.openImagePicker()}
-                      >
-                        <Icon name="picture" color="#009688" size={24} />
-                      </TouchableOpacity>
-                    </View>
-                    <View
-                      style={{
-                        width: "15%",
-                        paddingVertical: 10,
-                        paddingRight: 5
-                      }}
-                    >
-                      <TouchableOpacity
-                        style={{
-                          height: 40,
-                          width: 40,
-                          borderRadius: 20,
-                          justifyContent: "center",
-                          alignItems: "center"
-                        }}
-                        onPress={() => this.postQuestion()}
-                      >
-                        <Icon name="note" color="#3F51B5" size={24} />
-                      </TouchableOpacity>
+                      {placeDetail.name}
+                    </Text>
+                    <View style={{ flexDirection: "row" }}>
+                      <View style={{ width: "5%" }}>
+                        <Icon name="location-pin" />
+                      </View>
+                      <View style={{ width: "95%" }}>
+                        <Text style={{ fontWeight: "bold" }}>
+                          {this.getTypes(placeDetail.types)}
+                        </Text>
+                      </View>
                     </View>
                   </View>
-                </View>
-              )}
-              {/* Bottom Bar */}
+                  <View style={styles.LineBorder} />
+
+                  {/* Place Name Section */}
+                  {/* Place Address Section */}
+
+                  <View style={styles.addressBar}>
+                    <View
+                      style={{ paddingVertical: 10, paddingHorizontal: 15 }}
+                    >
+                      <Text style={{ color: "black", fontWeight: "bold" }}>
+                        ADDRESS
+                      </Text>
+                    </View>
+                    <View style={{ height: 1, backgroundColor: "#EDEEF3" }} />
+                    <View style={{ paddingHorizontal: 15, paddingVertical: 5 }}>
+                      <Text style={{ color: "black" }}>
+                        {placeDetail.address}
+                      </Text>
+                    </View>
+                    {this.getPhoneWeb(
+                      placeDetail.phoneNumber,
+                      placeDetail.website
+                    )}
+                  </View>
+                  {/* Place Address Section Ends*/}
+                  <View style={{ height: 1, backgroundColor: "#EDEEF3" }} />
+
+                  <View style={styles.addressBar}>
+                    <View
+                      style={{ paddingVertical: 10, paddingHorizontal: 15 }}
+                    >
+                      <Text style={{ color: "black", fontWeight: "bold" }}>
+                        REVIEWS
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={{ height: 1, backgroundColor: "#EDEEF3" }} />
+
+                  <View style={{ paddingBottom: 20 }}>{QuestionsFetch}</View>
+                </ScrollView>
+                {/* Bottom Bar */}
+                {placeDetail.name && (
+                  <View
+                    style={{
+                      marginHorizontal: 15
+                    }}
+                  >
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        position: "absolute",
+                        bottom: 10,
+                        backgroundColor: "#F2F3F5",
+                        borderRadius: 50,
+                        justifyContent: "center"
+                      }}
+                    >
+                      <View style={{ width: "70%", padding: 10 }}>
+                        <TextInput
+                          placeholder="Share your opinion about this place"
+                          placeholderTextColor="#5F6267"
+                          value={this.state.question}
+                          onChangeText={question => this.setState({ question })}
+                          style={{
+                            width: "100%",
+                            borderRadius: 25,
+                            padding: 5
+                          }}
+                        />
+                      </View>
+                      <View
+                        style={{
+                          width: "15%",
+                          paddingVertical: 10,
+                          paddingRight: 5
+                        }}
+                      >
+                        <TouchableOpacity
+                          style={{
+                            height: 40,
+                            width: 40,
+                            borderRadius: 20,
+                            justifyContent: "center",
+                            alignItems: "center"
+                          }}
+                          onPress={() => this.openImagePicker()}
+                        >
+                          <Icon name="picture" color="#009688" size={24} />
+                        </TouchableOpacity>
+                      </View>
+                      <View
+                        style={{
+                          width: "15%",
+                          paddingVertical: 10,
+                          paddingRight: 5
+                        }}
+                      >
+                        <TouchableOpacity
+                          style={{
+                            height: 40,
+                            width: 40,
+                            borderRadius: 20,
+                            justifyContent: "center",
+                            alignItems: "center"
+                          }}
+                          onPress={() => this.postQuestion()}
+                        >
+                          <Icon name="note" color="#3F51B5" size={24} />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  </View>
+                )}
+                {/* Bottom Bar */}
+              </View>
             </View>
           )}
         </View>
@@ -938,6 +1058,14 @@ const styles = StyleSheet.create({
   },
   inputLauncher: {
     backgroundColor: "#F3F7F9",
+    width: "100%",
+    height: 35,
+    justifyContent: "center",
+    paddingLeft: 10,
+    marginBottom: 16
+  },
+  inputLauncher2: {
+    backgroundColor: "#222222",
     width: "100%",
     height: 35,
     justifyContent: "center",
