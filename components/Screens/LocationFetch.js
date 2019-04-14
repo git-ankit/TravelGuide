@@ -11,7 +11,8 @@ import {
   Linking,
   ActivityIndicator,
   ScrollView,
-  TextInput
+  TextInput,
+  RefreshControl
 } from "react-native";
 import Icon from "react-native-vector-icons/SimpleLineIcons";
 import firebase from "react-native-firebase";
@@ -44,7 +45,8 @@ export default class LocationFetch extends Component {
       ImageUploadLoading: false,
       placePhoto: null,
       photoPresent: false,
-      placeSelected: false
+      placeSelected: false,
+      refreshing: false
     };
     this.user = firebase.firestore().collection("Users");
     this.ref = firebase.firestore().collection("Questions");
@@ -67,6 +69,10 @@ export default class LocationFetch extends Component {
     Colors = ["black", "#673AB7", "#3F51B5", "#FFC107", "#607D8B", "#4CAF50"];
     ColorNumber = Math.floor(Math.random() * 6);
     return Colors[ColorNumber];
+  }
+
+  _onRefresh = () =>{
+    this.setState({ isFetching: true }, fetchingQuestions =()=> { this.getQuestions(this.state.selectedPlace) });
   }
 
   getQuotes() {
@@ -170,7 +176,6 @@ export default class LocationFetch extends Component {
   }
 
   getNameByEmail = email => {
-    console.log("in here");
     this.user
       .where("email", "==", email)
       .get()
@@ -188,6 +193,7 @@ export default class LocationFetch extends Component {
       .where("place_id", "==", place.placeID)
       .orderBy("confidence_sort", "desc")
       .onSnapshot(this.onCollectionUpdate); // match the place_id and get questions about that place
+      this.setState({refreshing: false})
   };
 
   onCollectionUpdate = querySnapshot => {
@@ -204,7 +210,9 @@ export default class LocationFetch extends Component {
           asked_by,
           asked_by_name,
           image,
-          image_height
+          image_height,
+          confidence_sort,
+          timestamp
         } = doc.data();
         questions.push({
           questionID: doc.id, //name of the doc pertaining that question
@@ -214,7 +222,9 @@ export default class LocationFetch extends Component {
           asked_by,
           asked_by_name,
           image,
-          image_height
+          image_height,
+          confidence_sort,
+          timestamp
         });
         this.setState({
           questions: questions, // we push the entire data, each time, after each iteration as appending a state-array can lead to race conditions due to its asynchronous nature
@@ -441,8 +451,8 @@ export default class LocationFetch extends Component {
   };
 
   postQuestion = () => {
+    ts = Date.now()
     this.setState({ loading: true });
-    console.log(this.state.imageSource);
     if (this.state.imageSource == "" && this.state.question == "") {
       this.setState({ loading: false });
       Alert.alert("Please select a picture to upload or write something.");
@@ -455,7 +465,8 @@ export default class LocationFetch extends Component {
         upvote: 0,
         downvote: 0,
         asked_by_name: this.state.user,
-        image: image_source
+        image: image_source,
+        timestamp: ts
       };
       this.ref
         .add(data)
@@ -512,7 +523,7 @@ export default class LocationFetch extends Component {
   }; // a question's collection will have the fields-the question, the asker's user id and the selected place id. Also, a collection of answers
 
   _keyExtractor = (item, index) => item.questionID;
-  _renderItem = ({ item }) => (
+  _renderItem = ({ item }) => (         
     <TouchableOpacity
       activeOpacity = {1}
       onPress={() => {
@@ -611,7 +622,7 @@ export default class LocationFetch extends Component {
                   user: user
                 });
               }}
-            >
+            >              
               <Icon size={20} name="bubble" />
             </TouchableOpacity>
           </View>
@@ -712,7 +723,6 @@ export default class LocationFetch extends Component {
       PlaceNotSelected = null;
     }
     PlacePhoto = null;
-    console.log(this.state.photoPresent);
     if (this.state.photoPresent == true) {
       PlacePhoto = (
         <Image
@@ -730,20 +740,22 @@ export default class LocationFetch extends Component {
           <ActivityIndicator size="large" />
         </View>
       );
-    } else if (this.state.ImageUploadLoading == true) {
-      QuestionsFetch = (
-        <View
-          style={{
-            justifyContent: "center",
-            alignItems: "center",
-            padding: 20
-          }}
-        >
-          <Text style={{ textAlign: "center" }}>Uploading Image</Text>
-          <ActivityIndicator size="large" />
-        </View>
-      );
-    } else {
+    } 
+    // else if (this.state.ImageUploadLoading == true) {
+    //   QuestionsFetch = (
+    //     <View
+    //       style={{
+    //         justifyContent: "center",
+    //         alignItems: "center",
+    //         padding: 20
+    //       }}
+    //     >
+    //       <Text style={{ textAlign: "center" }}>Uploading Image</Text>
+    //       <ActivityIndicator size="large" />
+    //     </View>
+    //   );
+    // } 
+    else {
       QuestionsFetch = (
         <View style={{ paddingHorizontal: 10, paddingBottom: 60 }}>
           <FlatList
@@ -768,6 +780,7 @@ export default class LocationFetch extends Component {
             initialNumToRender = {5}
             extraData={this.state}
             keyExtractor={this._keyExtractor}
+            
           />
         </View>
       );
@@ -776,11 +789,25 @@ export default class LocationFetch extends Component {
     navigation = this.props.navigation;
     user = this.state.user_email;
     user_name = this.state.user;
+    ImageUploadLoading = this.state.ImageUploadLoading
     return (
       <View style={styles.container}>
         <View>
           {PlaceNotSelected}
-          {placeDetail.name && ( //Only be visible when a place is selected
+          {ImageUploadLoading && (
+            <View
+              style={{
+                justifyContent: "center",
+                alignItems: "center",
+                padding: 20
+              }}
+            >
+              <Text style={{ textAlign: "center" }}>Uploading Image</Text>
+              <ActivityIndicator size="large" />
+            </View>
+          )}
+         
+          {placeDetail.name && !ImageUploadLoading &&( //Only be visible when a place is selected
             <View>
               {/* Topbar Search and Map Button Start */}
               <View
@@ -835,7 +862,15 @@ export default class LocationFetch extends Component {
               {/* Topbar Search and Map Button Ends */}
               <View style={styles.LineBorder} />
               <View style={{ height: "87%" }}>
-                <ScrollView>
+                <ScrollView 
+                  refreshControl={
+                    <RefreshControl
+                      refreshing={this.state.refreshing}
+                      onRefresh={this._onRefresh}
+                      title="Loading..."
+                    />
+                  }
+                >
                   {/* Image Section  Starts*/}
                   <View style={this.state.photoPresent == true ? { height: 300, backgroundColor: "#fff" }: {height: 0}}>
                     {PlacePhoto}
@@ -922,7 +957,9 @@ export default class LocationFetch extends Component {
                   </View>
                   <View style={{ height: 1, backgroundColor: "#EDEEF3" }} />
 
-                  <View style={{ paddingBottom: 20 }}>{QuestionsFetch}</View>
+                  <View style={{ paddingBottom: 20 }}>                     
+                    {QuestionsFetch}
+                  </View>
                 </ScrollView>
                 {/* Bottom Bar */}
                 {placeDetail.name && (
