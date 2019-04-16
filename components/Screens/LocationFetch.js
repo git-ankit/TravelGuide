@@ -71,9 +71,14 @@ export default class LocationFetch extends Component {
     return Colors[ColorNumber];
   }
 
-  _onRefresh = () =>{
-    this.setState({ isFetching: true }, fetchingQuestions =()=> { this.getQuestions(this.state.selectedPlace) });
-  }
+  _onRefresh = () => {
+    this.setState(
+      { isFetching: true },
+      (fetchingQuestions = () => {
+        this.getQuestions(this.state.selectedPlace);
+      })
+    );
+  };
 
   getQuotes() {
     Quotes = [
@@ -193,7 +198,7 @@ export default class LocationFetch extends Component {
       .where("place_id", "==", place.placeID)
       .orderBy("confidence_sort", "desc")
       .onSnapshot(this.onCollectionUpdate); // match the place_id and get questions about that place
-      this.setState({refreshing: false})
+    this.setState({ refreshing: false });
   };
 
   onCollectionUpdate = querySnapshot => {
@@ -451,7 +456,7 @@ export default class LocationFetch extends Component {
   };
 
   postQuestion = () => {
-    ts = Date.now()
+    ts = Date.now();
     this.setState({ loading: true });
     if (this.state.imageSource == "" && this.state.question == "") {
       this.setState({ loading: false });
@@ -523,15 +528,15 @@ export default class LocationFetch extends Component {
   }; // a question's collection will have the fields-the question, the asker's user id and the selected place id. Also, a collection of answers
 
   _keyExtractor = (item, index) => item.questionID;
-  _renderItem = ({ item }) => (         
+  _renderItem = ({ item }) => (
     <TouchableOpacity
-      activeOpacity = {1}
+      activeOpacity={1}
       onPress={() => {
         navigation.navigate("AnswersScreen", {
           place: placeDetail,
           question: item,
           user_email: user,
-          user_name : user_name
+          user_name: user_name
         });
       }}
     >
@@ -622,7 +627,7 @@ export default class LocationFetch extends Component {
                   user: user
                 });
               }}
-            >              
+            >
               <Icon size={20} name="bubble" />
             </TouchableOpacity>
           </View>
@@ -740,7 +745,7 @@ export default class LocationFetch extends Component {
           <ActivityIndicator size="large" />
         </View>
       );
-    } 
+    }
     // else if (this.state.ImageUploadLoading == true) {
     //   QuestionsFetch = (
     //     <View
@@ -754,7 +759,7 @@ export default class LocationFetch extends Component {
     //       <ActivityIndicator size="large" />
     //     </View>
     //   );
-    // } 
+    // }
     else {
       QuestionsFetch = (
         <View style={{ paddingHorizontal: 10, paddingBottom: 60 }}>
@@ -777,10 +782,9 @@ export default class LocationFetch extends Component {
                 </View>
               </View>
             }
-            initialNumToRender = {5}
+            initialNumToRender={5}
             extraData={this.state}
             keyExtractor={this._keyExtractor}
-            
           />
         </View>
       );
@@ -789,7 +793,7 @@ export default class LocationFetch extends Component {
     navigation = this.props.navigation;
     user = this.state.user_email;
     user_name = this.state.user;
-    ImageUploadLoading = this.state.ImageUploadLoading
+    ImageUploadLoading = this.state.ImageUploadLoading;
     return (
       <View style={styles.container}>
         <View>
@@ -806,238 +810,247 @@ export default class LocationFetch extends Component {
               <ActivityIndicator size="large" />
             </View>
           )}
-         
-          {placeDetail.name && !ImageUploadLoading &&( //Only be visible when a place is selected
-            <View>
-              {/* Topbar Search and Map Button Start */}
-              <View
-                style={{
-                  flexDirection: "row",
-                  height: 100,
-                  backgroundColor: "#fff",
-                  padding: 10
-                }}
-              >
-                <View style={{ width: "75%", justifyContent: "center" }}>
-                  <TouchableOpacity
-                    style={[
-                      styles.inputLauncher,
-                      { height: 40, borderRadius: 15 }
-                    ]}
-                    onPress={this.onOpenAutocompletePress}
-                  >
-                    <View style={{ flexDirection: "row" }}>
-                      <View style={{ justifyContent: "center", padding: 5 }}>
-                        <Icon name="magnifier" size={15} />
-                      </View>
-                      <Text style={{ color: "#70818A", padding: 5 }}>
-                        Search for places
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                </View>
+
+          {placeDetail.name &&
+          !ImageUploadLoading && ( //Only be visible when a place is selected
+              <View>
+                {/* Topbar Search and Map Button Start */}
                 <View
                   style={{
-                    width: "25%",
-                    alignItems: "center",
-                    justifyContent: "center"
+                    flexDirection: "row",
+                    height: 100,
+                    backgroundColor: "#fff",
+                    padding: 10
                   }}
                 >
-                  <TouchableOpacity
-                    style={[
-                      styles.button,
-                      {
-                        width: 80,
-                        height: 80,
-                        backgroundColor: "#F3F7F9",
-                        borderRadius: 80 / 2
-                      }
-                    ]}
-                    onPress={this.onOpenPickerPress}
-                  >
-                    <Icon name="map" size={20} />
-                  </TouchableOpacity>
-                </View>
-              </View>
-              {/* Topbar Search and Map Button Ends */}
-              <View style={styles.LineBorder} />
-              <View style={{ height: "87%" }}>
-                <ScrollView 
-                  refreshControl={
-                    <RefreshControl
-                      refreshing={this.state.refreshing}
-                      onRefresh={this._onRefresh}
-                      title="Loading..."
-                    />
-                  }
-                >
-                  {/* Image Section  Starts*/}
-                  <View style={this.state.photoPresent == true ? { height: 300, backgroundColor: "#fff" }: {height: 0}}>
-                    {PlacePhoto}
-                  </View>
-                  {/* Image Section  Ends*/}
-                  {/* Place Name Section */}
-
-                  <View style={styles.NameHeader}>
-                    <View style={{ alignItems: "flex-end" }}>
-                      <View
-                        style={{
-                          backgroundColor: "#4CAF50",
-                          height: 25,
-                          width: 50,
-                          borderRadius: 50 / 2,
-                          paddingHorizontal: 10,
-                          alignItems: "center",
-                          flexDirection: "row",
-                          justifyContent: "space-evenly"
-                        }}
-                      >
-                        <Icon color="#fff" name="star" />
-
-                        <Text style={{ color: "#fff", fontWeight: "bold" }}>
-                          {this.getRatings(placeDetail.rating)}
+                  <View style={{ width: "75%", justifyContent: "center" }}>
+                    <TouchableOpacity
+                      style={[
+                        styles.inputLauncher,
+                        { height: 40, borderRadius: 15 }
+                      ]}
+                      onPress={this.onOpenAutocompletePress}
+                    >
+                      <View style={{ flexDirection: "row" }}>
+                        <View style={{ justifyContent: "center", padding: 5 }}>
+                          <Icon name="magnifier" size={15} />
+                        </View>
+                        <Text style={{ color: "#70818A", padding: 5 }}>
+                          Search for places
                         </Text>
                       </View>
-                    </View>
-                    <Text
-                      style={{
-                        color: "black",
-                        fontSize: 20,
-                        fontWeight: "bold"
-                      }}
-                    >
-                      {placeDetail.name}
-                    </Text>
-                    <View style={{ flexDirection: "row" }}>
-                      <View style={{ width: "5%" }}>
-                        <Icon name="location-pin" />
-                      </View>
-                      <View style={{ width: "95%" }}>
-                        <Text style={{ fontWeight: "bold" }}>
-                          {this.getTypes(placeDetail.types)}
-                        </Text>
-                      </View>
-                    </View>
+                    </TouchableOpacity>
                   </View>
-                  <View style={styles.LineBorder} />
-
-                  {/* Place Name Section */}
-                  {/* Place Address Section */}
-
-                  <View style={styles.addressBar}>
-                    <View
-                      style={{ paddingVertical: 10, paddingHorizontal: 15 }}
-                    >
-                      <Text style={{ color: "black", fontWeight: "bold" }}>
-                        ADDRESS
-                      </Text>
-                    </View>
-                    <View style={{ height: 1, backgroundColor: "#EDEEF3" }} />
-                    <View style={{ paddingHorizontal: 15, paddingVertical: 5 }}>
-                      <Text style={{ color: "black" }}>
-                        {placeDetail.address}
-                      </Text>
-                    </View>
-                    {this.getPhoneWeb(
-                      placeDetail.phoneNumber,
-                      placeDetail.website
-                    )}
-                  </View>
-                  {/* Place Address Section Ends*/}
-                  <View style={{ height: 1, backgroundColor: "#EDEEF3" }} />
-
-                  <View style={styles.addressBar}>
-                    <View
-                      style={{ paddingVertical: 10, paddingHorizontal: 15 }}
-                    >
-                      <Text style={{ color: "black", fontWeight: "bold" }}>
-                        REVIEWS
-                      </Text>
-                    </View>
-                  </View>
-                  <View style={{ height: 1, backgroundColor: "#EDEEF3" }} />
-
-                  <View style={{ paddingBottom: 20 }}>                     
-                    {QuestionsFetch}
-                  </View>
-                </ScrollView>
-                {/* Bottom Bar */}
-                {placeDetail.name && (
                   <View
                     style={{
-                      marginHorizontal: 15
+                      width: "25%",
+                      alignItems: "center",
+                      justifyContent: "center"
                     }}
                   >
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        position: "absolute",
-                        bottom: 10,
-                        backgroundColor: "#F2F3F5",
-                        borderRadius: 50,
-                        justifyContent: "center"
-                      }}
+                    <TouchableOpacity
+                      style={[
+                        styles.button,
+                        {
+                          width: 80,
+                          height: 80,
+                          backgroundColor: "#F3F7F9",
+                          borderRadius: 80 / 2
+                        }
+                      ]}
+                      onPress={this.onOpenPickerPress}
                     >
-                      <View style={{ width: "70%", padding: 10 }}>
-                        <TextInput
-                          placeholder="Share your opinion about this place"
-                          placeholderTextColor="#5F6267"
-                          value={this.state.question}
-                          onChangeText={question => this.setState({ question })}
+                      <Icon name="map" size={20} />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+                {/* Topbar Search and Map Button Ends */}
+                <View style={styles.LineBorder} />
+                <View style={{ height: "87%" }}>
+                  <ScrollView
+                    refreshControl={
+                      <RefreshControl
+                        refreshing={this.state.refreshing}
+                        onRefresh={this._onRefresh}
+                        title="Loading..."
+                      />
+                    }
+                  >
+                    {/* Image Section  Starts*/}
+                    <View
+                      style={
+                        this.state.photoPresent == true
+                          ? { height: 300, backgroundColor: "#fff" }
+                          : { height: 0 }
+                      }
+                    >
+                      {PlacePhoto}
+                    </View>
+                    {/* Image Section  Ends*/}
+                    {/* Place Name Section */}
+
+                    <View style={styles.NameHeader}>
+                      <View style={{ alignItems: "flex-end" }}>
+                        <View
                           style={{
-                            width: "100%",
-                            borderRadius: 25,
-                            padding: 5
+                            backgroundColor: "#4CAF50",
+                            height: 25,
+                            width: 50,
+                            borderRadius: 50 / 2,
+                            paddingHorizontal: 10,
+                            alignItems: "center",
+                            flexDirection: "row",
+                            justifyContent: "space-evenly"
                           }}
-                        />
+                        >
+                          <Icon color="#fff" name="star" />
+
+                          <Text style={{ color: "#fff", fontWeight: "bold" }}>
+                            {this.getRatings(placeDetail.rating)}
+                          </Text>
+                        </View>
                       </View>
-                      <View
+                      <Text
                         style={{
-                          width: "15%",
-                          paddingVertical: 10,
-                          paddingRight: 5
+                          color: "black",
+                          fontSize: 20,
+                          fontWeight: "bold"
                         }}
                       >
-                        <TouchableOpacity
-                          style={{
-                            height: 40,
-                            width: 40,
-                            borderRadius: 20,
-                            justifyContent: "center",
-                            alignItems: "center"
-                          }}
-                          onPress={() => this.openImagePicker()}
-                        >
-                          <Icon name="picture" color="#009688" size={24} />
-                        </TouchableOpacity>
-                      </View>
-                      <View
-                        style={{
-                          width: "15%",
-                          paddingVertical: 10,
-                          paddingRight: 5
-                        }}
-                      >
-                        <TouchableOpacity
-                          style={{
-                            height: 40,
-                            width: 40,
-                            borderRadius: 20,
-                            justifyContent: "center",
-                            alignItems: "center"
-                          }}
-                          onPress={() => this.postQuestion()}
-                        >
-                          <Icon name="note" color="#3F51B5" size={24} />
-                        </TouchableOpacity>
+                        {placeDetail.name}
+                      </Text>
+                      <View style={{ flexDirection: "row" }}>
+                        <View style={{ width: "5%" }}>
+                          <Icon name="location-pin" />
+                        </View>
+                        <View style={{ width: "95%" }}>
+                          <Text style={{ fontWeight: "bold" }}>
+                            {this.getTypes(placeDetail.types)}
+                          </Text>
+                        </View>
                       </View>
                     </View>
-                  </View>
-                )}
-                {/* Bottom Bar */}
+                    <View style={styles.LineBorder} />
+
+                    {/* Place Name Section */}
+                    {/* Place Address Section */}
+
+                    <View style={styles.addressBar}>
+                      <View
+                        style={{ paddingVertical: 10, paddingHorizontal: 15 }}
+                      >
+                        <Text style={{ color: "black", fontWeight: "bold" }}>
+                          ADDRESS
+                        </Text>
+                      </View>
+                      <View style={{ height: 1, backgroundColor: "#EDEEF3" }} />
+                      <View
+                        style={{ paddingHorizontal: 15, paddingVertical: 5 }}
+                      >
+                        <Text style={{ color: "black" }}>
+                          {placeDetail.address}
+                        </Text>
+                      </View>
+                      {this.getPhoneWeb(
+                        placeDetail.phoneNumber,
+                        placeDetail.website
+                      )}
+                    </View>
+                    {/* Place Address Section Ends*/}
+                    <View style={{ height: 1, backgroundColor: "#EDEEF3" }} />
+
+                    <View style={styles.addressBar}>
+                      <View
+                        style={{ paddingVertical: 10, paddingHorizontal: 15 }}
+                      >
+                        <Text style={{ color: "black", fontWeight: "bold" }}>
+                          REVIEWS
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={{ height: 1, backgroundColor: "#EDEEF3" }} />
+
+                    <View style={{ paddingBottom: 20 }}>{QuestionsFetch}</View>
+                  </ScrollView>
+                  {/* Bottom Bar */}
+                  {placeDetail.name && (
+                    <View
+                      style={{
+                        marginHorizontal: 15
+                      }}
+                    >
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          position: "absolute",
+                          bottom: 10,
+                          backgroundColor: "#F2F3F5",
+                          borderRadius: 50,
+                          justifyContent: "center"
+                        }}
+                      >
+                        <View style={{ width: "70%", padding: 10 }}>
+                          <TextInput
+                            placeholder="Share your opinion about this place"
+                            placeholderTextColor="#5F6267"
+                            value={this.state.question}
+                            onChangeText={question =>
+                              this.setState({ question })
+                            }
+                            style={{
+                              width: "100%",
+                              borderRadius: 25,
+                              padding: 5
+                            }}
+                          />
+                        </View>
+                        <View
+                          style={{
+                            width: "15%",
+                            paddingVertical: 10,
+                            paddingRight: 5
+                          }}
+                        >
+                          <TouchableOpacity
+                            style={{
+                              height: 40,
+                              width: 40,
+                              borderRadius: 20,
+                              justifyContent: "center",
+                              alignItems: "center"
+                            }}
+                            onPress={() => this.openImagePicker()}
+                          >
+                            <Icon name="picture" color="#009688" size={24} />
+                          </TouchableOpacity>
+                        </View>
+                        <View
+                          style={{
+                            width: "15%",
+                            paddingVertical: 10,
+                            paddingRight: 5
+                          }}
+                        >
+                          <TouchableOpacity
+                            style={{
+                              height: 40,
+                              width: 40,
+                              borderRadius: 20,
+                              justifyContent: "center",
+                              alignItems: "center"
+                            }}
+                            onPress={() => this.postQuestion()}
+                          >
+                            <Icon name="note" color="#3F51B5" size={24} />
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    </View>
+                  )}
+                  {/* Bottom Bar */}
+                </View>
               </View>
-            </View>
-          )}
+            )}
         </View>
       </View>
     );

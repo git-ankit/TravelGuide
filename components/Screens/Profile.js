@@ -17,20 +17,26 @@ const ImageEmpty = require("../../src/images/no_image.png");
 export default class Profile extends Component {
   constructor(props) {
     super(props);
-    this.user_email = this.props.navigation.getParam("user", null); // the current user email
     this.state = {
       pictures: [],
       PicturesLoading: true,
-      user: ''
+      user: ""
     };
     this.user = firebase.firestore().collection("Users");
-    this.getNameByEmail(this.user_email)
-    this.ref = firebase
-      .firestore()
-      .collection("Questions")
-      .where("asked_by", "==", this.user_email);
-    this.ref.onSnapshot(this.onCollectionUpdate);
   }
+
+  componentDidMount() {
+    this.unsubscribe = firebase.auth().onAuthStateChanged(user => {
+      this.setState({ user_email: user.email });
+      this.getNameByEmail(user.email);
+      this.ref = firebase
+        .firestore()
+        .collection("Questions")
+        .where("asked_by", "==", user.email);
+      this.ref.onSnapshot(this.onCollectionUpdate);
+    });
+  }
+
   onCollectionUpdate = querySnapshot => {
     if (querySnapshot.empty) {
       this.setState({
@@ -100,6 +106,12 @@ export default class Profile extends Component {
     ColorNumber = Math.floor(Math.random() * 6);
     return Colors[ColorNumber];
   }
+
+  signOutUser = async () => {
+    try {
+      await firebase.auth().signOut();
+    } catch (e) {}
+  };
 
   render() {
     if (this.state.PicturesLoading == true) {
@@ -191,6 +203,25 @@ export default class Profile extends Component {
         <View style={{ padding: 1, backgroundColor: "#EDEEF3" }} />
 
         {ListOfPictures}
+        <View
+          style={{
+            padding: 10,
+            justifyContent: "center",
+            alignItems: "center"
+          }}
+        >
+          <TouchableOpacity
+            style={{
+              paddingHorizontal: 40,
+              paddingVertical: 20,
+              backgroundColor: "#F44336",
+              borderRadius: 20
+            }}
+            onPress={() => this.signOutUser()}
+          >
+            <Text style={{ color: "#fff", fontWeight: "bold" }}>Logout</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   }
