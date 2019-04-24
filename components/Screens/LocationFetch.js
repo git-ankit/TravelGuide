@@ -239,7 +239,7 @@ export default class LocationFetch extends Component {
     }
   };
 
-  onOpenPickerPress = () => {
+  onOpenPickerPress = async () => {
     RNGooglePlaces.openPlacePickerModal()
       .then(place => {
         console.log(place);
@@ -249,6 +249,7 @@ export default class LocationFetch extends Component {
           placeSelected: true
         });
         RNGooglePlaces.getPlacePhotos(place.placeID).then(photoMeta => {
+          console.log(photoMeta);
           if (photoMeta[0].uri != null) {
             this.setState({
               placePhoto: photoMeta,

@@ -138,12 +138,7 @@ export default class Profile extends Component {
     return (
       <View style={styles.container}>
         <Appbar.Header style={{ backgroundColor: "#009688" }}>
-          <Appbar.Action
-            icon="arrow-back"
-            color="white"
-            onPress={() => this.props.navigation.goBack()}
-          />
-          <Appbar.Content title={this.state.user} color="white" />
+          <Appbar.Content title="Profile" color="white" />
         </Appbar.Header>
         <View
           style={{
@@ -199,6 +194,16 @@ export default class Profile extends Component {
             {this.user}
           </Text>
         </View> */}
+        <Text
+          style={{
+            paddingLeft: 30,
+            fontWeight: "bold",
+            color: "black",
+            fontSize: 20
+          }}
+        >
+          {this.state.user}
+        </Text>
         <View style={{ padding: 1, backgroundColor: "#fff" }} />
         <View style={{ padding: 1, backgroundColor: "#EDEEF3" }} />
 
