@@ -187,7 +187,7 @@ export default class LocationFetch extends Component {
       .then(
         (info = query => {
           query.forEach(doc => {
-            this.setState({ user: doc.data().FullName });
+            this.setState({ user: doc.data().FullName, userDoc: doc.id });
           });
         })
       );
@@ -203,7 +203,7 @@ export default class LocationFetch extends Component {
 
   onCollectionUpdate = querySnapshot => {
     if (querySnapshot.empty) {
-      console.log("No questions");
+      // console.log("No questions");
       this.setState({ questions: [] });
     } else {
       const questions = [];
@@ -242,14 +242,14 @@ export default class LocationFetch extends Component {
   onOpenPickerPress = async () => {
     RNGooglePlaces.openPlacePickerModal()
       .then(place => {
-        console.log(place);
+        // console.log(place);
         this.setState({
           selectedPlace: place,
           questions: [],
           placeSelected: true
         });
         RNGooglePlaces.getPlacePhotos(place.placeID).then(photoMeta => {
-          console.log(photoMeta);
+          // console.log(photoMeta);
           if (photoMeta[0].uri != null) {
             this.setState({
               placePhoto: photoMeta,
@@ -258,7 +258,7 @@ export default class LocationFetch extends Component {
           }
         });
         this.getQuestions(place); // As soon as we select the place, load the questions
-        console.log(place);
+        // console.log(place);
       })
       .catch(error => console.log(error.message));
   };
@@ -431,14 +431,14 @@ export default class LocationFetch extends Component {
 
   openImagePicker = () => {
     ImagePicker.showImagePicker(response => {
-      console.log("Response = ", response);
+      // console.log("Response = ", response);
 
       if (response.didCancel) {
-        console.log("User cancelled image picker");
+        // console.log("User cancelled image picker");
       } else if (response.error) {
-        console.log("ImagePicker Error: ", response.error);
+        // console.log("ImagePicker Error: ", response.error);
       } else if (response.customButton) {
-        console.log("User tapped custom button: ", response.customButton);
+        // console.log("User tapped custom button: ", response.customButton);
       } else {
         const source = {
           uri: response.uri,
@@ -545,7 +545,8 @@ export default class LocationFetch extends Component {
         <TouchableOpacity
           onPress={() => {
             navigation.navigate("ProfileScreen", {
-              user: item.asked_by
+              user: item.asked_by,
+              userID: this.state.userDoc
             });
           }}
         >

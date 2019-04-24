@@ -7,6 +7,7 @@ import Answers from "../Screens/Answers";
 import Profile from "../Screens/Profile";
 import placeByType from "../Screens/placeByType";
 import BottomNav from "../Navigator/BottomNav";
+import ProfileOwn from "../Screens/ProfileOwn";
 
 export default class AppNavigatorMain extends React.Component {
   render() {
@@ -21,7 +22,8 @@ const AppNavigator = createStackNavigator(
     LocationFetchScreen: { screen: LocationFetch },
     placeByTypeScreen: { screen: placeByType },
     AnswersScreen: { screen: Answers },
-    ProfileScreen: { screen: Profile }
+    ProfileScreen: { screen: Profile },
+    ProfileOwnScreen: { screen: ProfileOwn }
   },
   {
     headerMode: "none"

@@ -17,24 +17,57 @@ const ImageEmpty = require("../../src/images/no_image.png");
 export default class Profile extends Component {
   constructor(props) {
     super(props);
+    this.user_email = this.props.navigation.getParam("user", null); // the current user email
     this.state = {
       pictures: [],
       PicturesLoading: true,
       user: ""
     };
+
+    this.userDoc = this.props.navigation.getParam("userID");
+    this.followDoc = firebase
+      .firestore()
+      .collection("Users")
+      .doc(this.userDoc);
     this.user = firebase.firestore().collection("Users");
+    this.getNameByEmail(this.user_email);
+    this.ref = firebase
+      .firestore()
+      .collection("Questions")
+      .where("asked_by", "==", this.user_email);
+    this.ref.onSnapshot(this.onCollectionUpdate);
   }
 
-  componentDidMount() {
-    this.unsubscribe = firebase.auth().onAuthStateChanged(user => {
-      this.setState({ user_email: user.email });
-      this.getNameByEmail(user.email);
-      this.ref = firebase
-        .firestore()
-        .collection("Questions")
-        .where("asked_by", "==", user.email);
-      this.ref.onSnapshot(this.onCollectionUpdate);
+  getFollower() {
+    this.user.where("email", "==", this.user_email).onSnapshot(data => {
+      followingUsers = data._changes[0]._document._data.following;
+      if (followingUsers != null) {
+        userNumber = followingUsers.length;
+        this.setState({
+          followingUsers,
+          userNumber
+        });
+      } else {
+        this.setState({
+          userNumber: 0
+        });
+      }
     });
+  }
+
+  // getFollowerMine() {
+  //   this.followDoc.onSnapshot(data => {
+  //     followingUsers = data._data.following;
+  //     userNumber = followingUsers.length;
+  //     this.setState({
+  //       followingUsers,
+  //       userNumber
+  //     });
+  //   });
+  // }
+
+  componentDidMount() {
+    this.getFollower();
   }
 
   onCollectionUpdate = querySnapshot => {
@@ -69,6 +102,18 @@ export default class Profile extends Component {
           });
         })
       );
+  };
+
+  FollowUser = () => {
+    var data = {
+      userEmail: this.user_email
+    };
+    this.followDoc.set(
+      {
+        following: firebase.firestore.FieldValue.arrayUnion(this.user_email)
+      },
+      { merge: true }
+    );
   };
 
   _keyExtractor = item => item.questionID;
@@ -107,12 +152,6 @@ export default class Profile extends Component {
     return Colors[ColorNumber];
   }
 
-  signOutUser = async () => {
-    try {
-      await firebase.auth().signOut();
-    } catch (e) {}
-  };
-
   render() {
     if (this.state.PicturesLoading == true) {
       ListOfPictures = (
@@ -138,7 +177,12 @@ export default class Profile extends Component {
     return (
       <View style={styles.container}>
         <Appbar.Header style={{ backgroundColor: "#009688" }}>
-          <Appbar.Content title="Profile" color="white" />
+          <Appbar.Action
+            icon="arrow-back"
+            color="white"
+            onPress={() => this.props.navigation.goBack()}
+          />
+          <Appbar.Content title="User Profile" color="white" />
         </Appbar.Header>
         <View
           style={{
@@ -164,7 +208,7 @@ export default class Profile extends Component {
           </View>
           <View
             style={{
-              width: "70%",
+              width: "40%",
               justifyContent: "center",
               alignItems: "center"
             }}
@@ -188,45 +232,66 @@ export default class Profile extends Component {
               </Text>
             </View>
           </View>
+          <View
+            style={{
+              width: "20%",
+              justifyContent: "center",
+              alignItems: "center"
+            }}
+          >
+            <View>
+              <Text
+                style={{
+                  fontSize: 70,
+                  color: "black",
+                  fontWeight: "bold"
+                }}
+              >
+                {this.state.userNumber}
+              </Text>
+            </View>
+            <View>
+              <Text
+                style={{ fontWeight: "bold", fontSize: 18, color: "black" }}
+              >
+                Following
+              </Text>
+            </View>
+          </View>
         </View>
-        {/* <View style={{ backgroundColor: "#fff", paddingHorizontal: 25 }}>
-          <Text style={{ fontWeight: "bold", color: "black", fontSize: 20 }}>
-            {this.user}
-          </Text>
-        </View> */}
-        <Text
-          style={{
-            paddingLeft: 30,
-            fontWeight: "bold",
-            color: "black",
-            fontSize: 20
-          }}
-        >
-          {this.state.user}
-        </Text>
+        <View style={{ flexDirection: "row" }}>
+          <View style={{ width: "30%" }}>
+            <Text
+              style={{
+                paddingLeft: 30,
+                fontWeight: "bold",
+                color: "black",
+                fontSize: 20
+              }}
+            >
+              {this.state.user}
+            </Text>
+          </View>
+          <View style={{ paddingLeft: 60 }}>
+            <TouchableOpacity
+              style={{
+                paddingHorizontal: 50,
+                paddingVertical: 5,
+                backgroundColor: "#3F51B5",
+                borderRadius: 5
+              }}
+              onPress={() => this.FollowUser()}
+            >
+              <Text style={{ color: "#fff", fontWeight: "bold" }}>
+                Follow User
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
         <View style={{ padding: 1, backgroundColor: "#fff" }} />
         <View style={{ padding: 1, backgroundColor: "#EDEEF3" }} />
 
         {ListOfPictures}
-        <View
-          style={{
-            padding: 10,
-            justifyContent: "center",
-            alignItems: "center"
-          }}
-        >
-          <TouchableOpacity
-            style={{
-              paddingHorizontal: 40,
-              paddingVertical: 20,
-              backgroundColor: "#F44336",
-              borderRadius: 20
-            }}
-            onPress={() => this.signOutUser()}
-          >
-            <Text style={{ color: "#fff", fontWeight: "bold" }}>Logout</Text>
-          </TouchableOpacity>
-        </View>
       </View>
     );
   }
