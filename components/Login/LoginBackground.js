@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, View, Image } from "react-native";
+import { StyleSheet, View, Image, TouchableOpacity, Text } from "react-native";
 import { Button, Headline } from "react-native-paper";
 
 const LoginBackgroundImage = require("../../src/LoginBG.png");
@@ -42,6 +42,22 @@ export default class LoginBackground extends React.Component {
             Signup
           </Button>
         </View>
+        <View>
+          <TouchableOpacity
+            style={{
+              backgroundColor: "black",
+              padding: 20,
+              borderRadius: 5
+            }}
+            onPress={() =>
+              this.props.navigation.navigate("AppNavigatorNoScreen")
+            }
+          >
+            <Text style={{ color: "#fff", fontWeight: "bold", fontSize: 15 }}>
+              CONTINUE WITHOUT LOGIN
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   }
@@ -64,7 +80,7 @@ const styles = StyleSheet.create({
     width: "100%"
   },
   queueimg: {
-    height: "65%",
+    height: "45%",
     justifyContent: "center",
     alignItems: "center"
   },

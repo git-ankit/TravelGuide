@@ -18,6 +18,8 @@ import Main from "../Login/Main";
 import RegisterInfo from "../Login/UserNavigation/RegisterInfo";
 import AppNavigator from "./AppNavigator";
 import BottomNav from "../Navigator/BottomNav";
+import LocationFetchNo from "../Screens/NoLogin/LocationFetchNo";
+import AppNavigatorNo from "../Navigator/AppNavigatorNo";
 
 export default class LoginNavigatorMain extends React.Component {
   render() {
@@ -28,6 +30,12 @@ export default class LoginNavigatorMain extends React.Component {
 const LoginStack = createStackNavigator({
   LoginBackgroundScreen: {
     screen: LoginBackground,
+    navigationOptions: ({ navigation }) => ({
+      header: null
+    })
+  },
+  AppNavigatorNoScreen: {
+    screen: AppNavigatorNo,
     navigationOptions: ({ navigation }) => ({
       header: null
     })
