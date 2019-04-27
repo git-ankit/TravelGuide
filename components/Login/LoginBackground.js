@@ -30,14 +30,14 @@ export default class LoginBackground extends React.Component {
               }
             ]}
             mode="contained"
-            onPress={() => this.props.navigation.navigate("Login")}
+            onPress={() => this.props.navigation.navigate("LoginScreen")}
           >
             Login
           </Button>
           <Button
             style={[styles.btnstyle, { marginTop: 10 }]}
             mode="contained"
-            onPress={() => this.props.navigation.navigate("SignUp")}
+            onPress={() => this.props.navigation.navigate("SignUpScreen")}
           >
             Signup
           </Button>

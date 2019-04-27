@@ -1,6 +1,12 @@
 import React, { Component } from "react";
 
-import { createSwitchNavigator, createAppContainer } from "react-navigation";
+import {
+  createSwitchNavigator,
+  createAppContainer,
+  createStackNavigator
+} from "react-navigation";
+
+import { Text } from "react-native";
 
 // import the different screens
 import Loading from "../Login/Loading";
@@ -11,6 +17,7 @@ import ForgotPassword from "../Login/ForgotPassword";
 import Main from "../Login/Main";
 import RegisterInfo from "../Login/UserNavigation/RegisterInfo";
 import AppNavigator from "./AppNavigator";
+import BottomNav from "../Navigator/BottomNav";
 
 export default class LoginNavigatorMain extends React.Component {
   render() {
@@ -18,17 +25,50 @@ export default class LoginNavigatorMain extends React.Component {
   }
 }
 
+const LoginStack = createStackNavigator({
+  LoginBackgroundScreen: {
+    screen: LoginBackground,
+    navigationOptions: ({ navigation }) => ({
+      header: null
+    })
+  },
+  LoginScreen: {
+    screen: Login,
+    navigationOptions: ({ navigation }) => ({
+      headerTitle: (
+        <Text style={{ fontWeight: "bold", color: "black" }}>Login</Text>
+      )
+    })
+  },
+  SignUpScreen: {
+    screen: SignUp,
+    navigationOptions: ({ navigation }) => ({
+      headerTitle: (
+        <Text style={{ fontWeight: "bold", color: "black" }}>Sign Up</Text>
+      )
+    })
+  },
+  ForgotPasswordScreen: {
+    screen: ForgotPassword,
+    navigationOptions: ({ navigation }) => ({
+      headerTitle: (
+        <Text style={{ fontWeight: "bold", color: "black" }}>
+          Forgot Password
+        </Text>
+      )
+    })
+  }
+});
+
 // create our app's navigation stack
 const LoginNavigator = createSwitchNavigator(
   {
     Loading,
-    SignUp,
-    LoginBackground,
-    Login,
-    ForgotPassword,
+    LoginStack,
     Main,
     RegisterInfo,
-    AppNavigator
+    AppNavigator,
+    BottomNav
   },
   {
     initialRouteName: "Loading"

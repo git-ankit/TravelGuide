@@ -161,19 +161,19 @@ export default class Login extends React.Component {
                 }
               ]}
               mode="contained"
-              onPress={() => this.props.navigation.navigate("ForgotPassword")}
+              onPress={() =>
+                this.props.navigation.navigate("ForgotPasswordScreen")
+              }
             >
-              Password?
+              Password
             </Button>
           </View>
-          <View style={{ justifyContent: "center", alignItems: "center" }}>
-            <Text>Sign in with Google</Text>
-          </View>
+
           <View style={styles.signupbtn}>
             <View style={{ paddingTop: 20 }}>
               <Button
                 mode="contained"
-                onPress={() => this.props.navigation.navigate("SignUp")}
+                onPress={() => this.props.navigation.navigate("SignUpScreen")}
               >
                 Don't have an Account ? Sign Up
               </Button>

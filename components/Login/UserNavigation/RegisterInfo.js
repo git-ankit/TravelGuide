@@ -38,22 +38,29 @@ export default class RegisterInfo extends React.Component {
   };
 
   addData = () => {
-    this.setState({
-      FullName: this.state.FullName,
-      City: this.state.City,
-      loading: false
-    });
     this.ref
-      .add({
-        FullName: this.state.FullName,
-        City: this.state.City,
-        email: this.state.currentUser.email
-      })
-      .then(this.navigateTo());
+      .where("email", "==", this.state.currentUser.email)
+      .get()
+      .then(querySnapshot => {
+        if (querySnapshot.empty) {
+          this.setState({
+            FullName: this.state.FullName,
+            City: this.state.City,
+            loading: false
+          });
+          this.ref
+            .add({
+              FullName: this.state.FullName,
+              City: this.state.City,
+              email: this.state.currentUser.email
+            })
+            .then(this.navigateTo());
+        }
+      });
   };
 
   navigateTo = () => {
-    this.props.navigation.navigate("FetchLocation");
+    this.props.navigation.navigate("BottomNav");
   };
 
   selectMumbai() {

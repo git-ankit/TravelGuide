@@ -150,13 +150,10 @@ export default class Login extends React.Component {
             <Button
               style={styles.btnstyle}
               mode="contained"
-              onPress={() => this.props.navigation.navigate("Login")}
+              onPress={() => this.props.navigation.navigate("LoginScreen")}
             >
-              Login?
+              Login
             </Button>
-          </View>
-          <View style={{ justifyContent: "center", alignItems: "center" }}>
-            <Text>Sign up with Google</Text>
           </View>
         </View>
         <Snackbar

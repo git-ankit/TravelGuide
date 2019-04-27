@@ -99,19 +99,6 @@ export default class ForgotPassword extends React.Component {
             >
               Send Password
             </Button>
-            <Button
-              style={[
-                styles.btnstyle,
-                {
-                  backgroundColor: "#4CAF50",
-                  justifyContent: "center"
-                }
-              ]}
-              mode="contained"
-              onPress={() => this.props.navigation.navigate("Login")}
-            >
-              Go Back
-            </Button>
           </View>
         </View>
         <Snackbar
