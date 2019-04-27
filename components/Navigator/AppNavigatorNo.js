@@ -5,7 +5,8 @@ import { createStackNavigator, createAppContainer } from "react-navigation";
 import LocationFetchNo from "../Screens/NoLogin/LocationFetchNo";
 import AnswersNo from "../Screens/NoLogin/AnswersNo";
 import ProfileNo from "../Screens/NoLogin/ProfileNo";
-// import placeByType from "../Screens/placeByType";
+import placeByType from "../Screens/placeByType";
+import BottomNavNo from "../Navigator/BottomNavNo";
 
 export default class AppNavigatorMain extends React.Component {
   render() {
@@ -16,9 +17,9 @@ export default class AppNavigatorMain extends React.Component {
 // create our app's navigation stack
 const AppNavigatorNo = createStackNavigator(
   {
-    // BottomNavScreen: { screen: BottomNav },
+    BottomNavNoScreen: { screen: BottomNavNo },
     LocationFetchNoScreen: { screen: LocationFetchNo },
-    // placeByTypeScreen: { screen: placeByType },
+    placeByTypeScreen: { screen: placeByType },
     AnswersNoScreen: { screen: AnswersNo },
     ProfileNoScreen: { screen: ProfileNo }
   },
