@@ -638,6 +638,7 @@ export default class LocationFetch extends Component {
     </TouchableOpacity>
   );
   render() {
+    console.log(this.state.question);
     PlaceNotSelected = (
       <View
         style={{ padding: 15, justifyContent: "center", alignItems: "center" }}
@@ -957,7 +958,34 @@ export default class LocationFetch extends Component {
                         placeDetail.phoneNumber,
                         placeDetail.website
                       )}
+                      <View
+                        style={{
+                          padding: 5,
+                          alignItems: "center"
+                        }}
+                      >
+                        <TouchableOpacity
+                          onPress={() =>
+                            Linking.openURL(
+                              "google.navigation:q=" +
+                                this.state.selectedPlace.latitude +
+                                "+" +
+                                this.state.selectedPlace.longitude
+                            )
+                          }
+                          style={{
+                            padding: 10,
+                            backgroundColor: "#3F51B5",
+                            borderRadius: 5
+                          }}
+                        >
+                          <Text style={{ color: "#fff", fontWeight: "bold" }}>
+                            Get Direction
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
                     </View>
+
                     {/* Place Address Section Ends*/}
                     <View style={{ height: 1, backgroundColor: "#EDEEF3" }} />
 

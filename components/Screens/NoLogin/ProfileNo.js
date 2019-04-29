@@ -10,11 +10,10 @@ import {
   ActivityIndicator
 } from "react-native";
 import { Appbar } from "react-native-paper";
-import FullWidthImage from "../../CustomLibrary/FullWidthImage";
 import firebase from "react-native-firebase";
 const CommentsEmpty = require("../../../src/images/comments_empty.png");
 const ImageEmpty = require("../../../src/images/no_image.png");
-export default class ProfileNo extends Component {
+export default class Profile extends Component {
   constructor(props) {
     super(props);
     this.user_email = this.props.navigation.getParam("user", null); // the current user email
@@ -84,6 +83,12 @@ export default class ProfileNo extends Component {
           image,
           place_id
         });
+
+        for (i = 0; i < pictures.length; i++) {
+          if (pictures[i].image == "") {
+            pictures.pop();
+          }
+        }
         this.setState({
           pictures,
           PicturesLoading: false
@@ -129,15 +134,23 @@ export default class ProfileNo extends Component {
     </View>
   );
 
+  getImage(u) {
+    if (u.image != "") {
+      return (
+        <Image
+          source={{ uri: u.image }}
+          style={{ height: 132, width: 132 }}
+          resizeMode="cover"
+        />
+      );
+    }
+  }
+
   _renderItem = ({ item }) => (
     <View
       style={{ padding: 1, justifyContent: "center", alignItems: "center" }}
     >
-      <Image
-        source={item.image == "" ? ImageEmpty : { uri: item.image }}
-        style={{ height: 132, width: 132 }}
-        resizeMode="cover"
-      />
+      {this.getImage(item)}
     </View>
   );
 
@@ -240,21 +253,29 @@ export default class ProfileNo extends Component {
             }}
           >
             <View>
-              <Text
-                style={{
-                  fontSize: 70,
-                  color: "black",
-                  fontWeight: "bold"
+              <TouchableOpacity
+                onPress={() => {
+                  navigation.navigate("FavUserScreen", {
+                    following: this.state.followingUsers
+                  });
                 }}
               >
-                {this.state.userNumber}
-              </Text>
+                <Text
+                  style={{
+                    fontSize: 70,
+                    color: "black",
+                    fontWeight: "bold"
+                  }}
+                >
+                  {this.state.userNumber}
+                </Text>
+              </TouchableOpacity>
             </View>
             <View>
               <Text
                 style={{ fontWeight: "bold", fontSize: 18, color: "black" }}
               >
-                Following
+                Favourites
               </Text>
             </View>
           </View>
@@ -272,7 +293,6 @@ export default class ProfileNo extends Component {
               {this.state.user}
             </Text>
           </View>
-          <View style={{ paddingLeft: 60 }} />
         </View>
         <View style={{ padding: 1, backgroundColor: "#fff" }} />
         <View style={{ padding: 1, backgroundColor: "#EDEEF3" }} />

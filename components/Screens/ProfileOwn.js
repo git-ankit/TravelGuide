@@ -70,6 +70,12 @@ export default class ProfileOwn extends Component {
           image,
           place_id
         });
+        for (i = 0; i < pictures.length; i++) {
+          if (pictures[i].image == "") {
+            pictures.pop();
+          }
+        }
+
         this.setState({
           pictures,
           PicturesLoading: false
@@ -103,15 +109,23 @@ export default class ProfileOwn extends Component {
     </View>
   );
 
+  getImage(u) {
+    if (u.image != "") {
+      return (
+        <Image
+          source={{ uri: u.image }}
+          style={{ height: 132, width: 132 }}
+          resizeMode="cover"
+        />
+      );
+    }
+  }
+
   _renderItem = ({ item }) => (
     <View
       style={{ padding: 1, justifyContent: "center", alignItems: "center" }}
     >
-      <Image
-        source={item.image == "" ? ImageEmpty : { uri: item.image }}
-        style={{ height: 132, width: 132 }}
-        resizeMode="cover"
-      />
+      {this.getImage(item)}
     </View>
   );
 
@@ -133,6 +147,7 @@ export default class ProfileOwn extends Component {
   };
 
   render() {
+    console.log(this.state.pictures);
     if (this.state.PicturesLoading == true) {
       ListOfPictures = (
         <View>
@@ -215,21 +230,27 @@ export default class ProfileOwn extends Component {
             }}
           >
             <View>
-              <Text
-                style={{
-                  fontSize: 70,
-                  color: "black",
-                  fontWeight: "bold"
+              <TouchableOpacity
+                onPress={() => {
+                  navigation.navigate("FavUserScreen");
                 }}
               >
-                {this.state.userNumber}
-              </Text>
+                <Text
+                  style={{
+                    fontSize: 70,
+                    color: "black",
+                    fontWeight: "bold"
+                  }}
+                >
+                  {this.state.userNumber}
+                </Text>
+              </TouchableOpacity>
             </View>
             <View>
               <Text
                 style={{ fontWeight: "bold", fontSize: 18, color: "black" }}
               >
-                Following
+                Favourites
               </Text>
             </View>
           </View>

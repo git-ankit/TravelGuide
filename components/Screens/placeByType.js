@@ -7,7 +7,8 @@ import {
   Image,
   ScrollView,
   StyleSheet,
-  ActivityIndicator
+  ActivityIndicator,
+  Linking
 } from "react-native";
 import RNGooglePlaces from "react-native-google-places";
 export default class PlaceByType extends Component {
@@ -56,15 +57,23 @@ export default class PlaceByType extends Component {
         <FlatList
           data={this.state.Result}
           renderItem={({ item }) => (
-            <View elevation={1} style={styles.itemContainer}>
-              <Text
-                style={{ fontSize: 20, fontWeight: "bold", color: "black" }}
-              >
-                {item.name}
-              </Text>
-              <View style={{ height: 1, backgroundColor: "#9E9E9E" }} />
-              <Text>{item.address}</Text>
-            </View>
+            <TouchableOpacity
+              onPress={() =>
+                Linking.openURL(
+                  "google.navigation:q=" + item.latitude + "+" + item.longitude
+                )
+              }
+            >
+              <View elevation={1} style={styles.itemContainer}>
+                <Text
+                  style={{ fontSize: 20, fontWeight: "bold", color: "black" }}
+                >
+                  {item.name}
+                </Text>
+                <View style={{ height: 1, backgroundColor: "#9E9E9E" }} />
+                <Text>{item.address}</Text>
+              </View>
+            </TouchableOpacity>
           )}
           keyExtractor={i => i.placeID}
         />

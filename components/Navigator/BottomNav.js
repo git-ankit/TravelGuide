@@ -12,6 +12,8 @@ import PlaceByType from "../Screens/placeByType";
 import Profile from "../Screens/Profile";
 import Answers from "../Screens/Answers";
 import ProfileOwn from "../Screens/ProfileOwn";
+import FavUser from "../Screens/FavUser";
+import Profile2 from "../Screens/Profile";
 
 import Icon from "react-native-vector-icons/SimpleLineIcons";
 import { createStackNavigator, createAppContainer } from "react-navigation";
@@ -21,7 +23,9 @@ const LocationFetchNav = createStackNavigator(
     LocationFetchScreen: { screen: LocationFetch },
     AnswersScreen: { screen: Answers },
     ProfileScreen: { screen: Profile },
-    ProfileOwnScreen: { screen: ProfileOwn }
+    ProfileScreen2: { screen: Profile2 },
+    ProfileOwnScreen: { screen: ProfileOwn },
+    FavUserScreen: { screen: FavUser }
   },
   {
     headerMode: "none"
