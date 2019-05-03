@@ -26,6 +26,7 @@ export default class FavUser extends Component {
   }
 
   getNameByEmail = async email => {
+    // Get name of user from Firebase using Email id
     Name = [];
     await this.user
       .where("email", "==", email)

@@ -24,7 +24,7 @@ export default class Profile extends Component {
       user: ""
     };
 
-    this.userDoc = this.props.navigation.getParam("userID");
+    this.userDoc = this.props.navigation.getParam("userID"); // Getting user doc from Props
     this.followDoc = firebase
       .firestore()
       .collection("Users")
@@ -39,6 +39,7 @@ export default class Profile extends Component {
   }
 
   getFollower() {
+    // Fetching followers from Firebase
     this.user.where("email", "==", this.user_email).onSnapshot(data => {
       followingUsers = data._changes[0]._document._data.following;
       if (followingUsers != null) {
@@ -71,6 +72,7 @@ export default class Profile extends Component {
   }
 
   onCollectionUpdate = querySnapshot => {
+    // Fetching data from Firebase
     if (querySnapshot.empty) {
       this.setState({
         PicturesLoading: false
@@ -98,6 +100,7 @@ export default class Profile extends Component {
     }
   };
   getNameByEmail = email => {
+    // Name by email (Firebase)
     this.user
       .where("email", "==", email)
       .get()
@@ -111,6 +114,7 @@ export default class Profile extends Component {
   };
 
   FollowUser = () => {
+    // Follow user
     var data = {
       userEmail: this.user_email
     };
@@ -136,6 +140,7 @@ export default class Profile extends Component {
   );
 
   getImage(u) {
+    // Images from Storage
     if (u.image != "") {
       return (
         <Image
@@ -156,6 +161,7 @@ export default class Profile extends Component {
   );
 
   getProfileText(name) {
+    // Profile Text
     n = name;
     return n.charAt(0);
   }

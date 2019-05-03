@@ -41,15 +41,15 @@ export default class LocationFetch extends Component {
       user: null, // a state to hold the value of current user email
       user_email: null,
       imageSource: [],
-      QuestionsLoading: false,
-      ImageUploadLoading: false,
-      placePhoto: null,
-      photoPresent: false,
-      placeSelected: false,
+      QuestionsLoading: false, // current state of Questions
+      ImageUploadLoading: false, // current state of Image Upload
+      placePhoto: null, // Place photo details
+      photoPresent: false, // Photo Present or not
+      placeSelected: false, // Is Place selected or not
       refreshing: false
     };
-    this.user = firebase.firestore().collection("Users");
-    this.ref = firebase.firestore().collection("Questions");
+    this.user = firebase.firestore().collection("Users"); // reference to User Collection
+    this.ref = firebase.firestore().collection("Questions"); // reference to Questions Collection
     this.refStorage = firebase.storage();
   }
 
@@ -61,11 +61,13 @@ export default class LocationFetch extends Component {
   }
 
   getProfileText(name) {
+    // Function to get 1st chracter from User Name
     n = name;
     return n.charAt(0);
   }
 
   getProfileBackground() {
+    // Setting Random background color for Profile
     Colors = ["black", "#673AB7", "#3F51B5", "#FFC107", "#607D8B", "#4CAF50"];
     ColorNumber = Math.floor(Math.random() * 6);
     return Colors[ColorNumber];
@@ -81,6 +83,7 @@ export default class LocationFetch extends Component {
   };
 
   getQuotes() {
+    // Random quotes
     Quotes = [
       "“Man cannot discover new oceans unless he has the courage to lose sight of the shore.”",
       "“Remember that happiness is a way of travel – not a destination.”",
@@ -92,11 +95,12 @@ export default class LocationFetch extends Component {
       "“Wanderlust: n. a strong desire for or impulse to wander or travel and explore the world”",
       "“Don't listen to what they say. Go see.”"
     ];
-    QuoteNumber = Math.floor(Math.random() * 9);
-    return Quotes[QuoteNumber];
+    QuoteNumber = Math.floor(Math.random() * 9); // Random Number will be generated using this function
+    return Quotes[QuoteNumber]; // Random number will be used in Array to select Quote
   }
 
   getPhoneWeb(number, web) {
+    // Get Phone number and website
     const args = {
       number: number,
       prompt: false
@@ -107,7 +111,8 @@ export default class LocationFetch extends Component {
     n = number;
     w = web;
     if (n != null) {
-      PhoneNumber = (
+      // If Number is present Phone icon display
+      PhoneNumber = ( // Call Function
         <TouchableOpacity onPress={() => call(args)}>
           <View
             style={{
@@ -128,7 +133,7 @@ export default class LocationFetch extends Component {
       );
     }
     if (w != null) {
-      Website = (
+      Website = ( // If website present display website icon
         <TouchableOpacity onPress={() => Linking.openURL(w)}>
           <View
             style={{
@@ -162,11 +167,13 @@ export default class LocationFetch extends Component {
   }
 
   getRatings(ratings) {
+    // Rounding off rating
     R = Math.round(ratings);
     return R;
   }
 
   getTypes(details) {
+    // Get Place type and format to display
     Types = null;
     if (details.length == 0) {
       return (Types = null);
@@ -181,6 +188,7 @@ export default class LocationFetch extends Component {
   }
 
   getNameByEmail = email => {
+    // get name of user using email from database
     this.user
       .where("email", "==", email)
       .get()
@@ -194,6 +202,7 @@ export default class LocationFetch extends Component {
   };
 
   getQuestions = place => {
+    // Get all from database and use confidence sort
     this.ref
       .where("place_id", "==", place.placeID)
       .orderBy("confidence_sort", "desc")
@@ -202,6 +211,7 @@ export default class LocationFetch extends Component {
   };
 
   onCollectionUpdate = querySnapshot => {
+    // Fetch everythingggggggggg
     if (querySnapshot.empty) {
       // console.log("No questions");
       this.setState({ questions: [] });
@@ -240,6 +250,7 @@ export default class LocationFetch extends Component {
   };
 
   onOpenPickerPress = async () => {
+    // On Map icon press open map
     RNGooglePlaces.openPlacePickerModal()
       .then(place => {
         // console.log(place);
@@ -264,6 +275,7 @@ export default class LocationFetch extends Component {
   };
 
   onOpenAutocompletePress = () => {
+    // on Search pressed open search
     RNGooglePlaces.openAutocompleteModal()
       .then(place => {
         this.setState({
@@ -285,6 +297,7 @@ export default class LocationFetch extends Component {
   };
 
   upvote = (docID, upvotes, downvotes) => {
+    // Upvote and store in Firebase and calculate Confidence Sort
     this.setState({ upvote: upvotes + 1 });
     this.ref
       .doc(docID)
@@ -351,6 +364,8 @@ export default class LocationFetch extends Component {
   };
 
   downvote = (docID, upvotes, downvotes) => {
+    // downvote and store in Firebase and calculate Confidence Sort
+
     this.setState({ downvote: downvotes + 1 });
     this.ref
       .doc(docID)
@@ -430,6 +445,7 @@ export default class LocationFetch extends Component {
   };
 
   openImagePicker = () => {
+    // Image Picker
     ImagePicker.showImagePicker(response => {
       // console.log("Response = ", response);
 
@@ -457,6 +473,7 @@ export default class LocationFetch extends Component {
   };
 
   postQuestion = () => {
+    // Post Question in Firebase
     ts = Date.now();
     this.setState({ loading: true });
     if (this.state.imageSource == "" && this.state.question == "") {

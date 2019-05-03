@@ -39,6 +39,7 @@ export default class Profile extends Component {
   }
 
   getFollower() {
+    // Get Followers list
     this.user.where("email", "==", this.user_email).onSnapshot(data => {
       followingUsers = data._changes[0]._document._data.following;
       if (followingUsers != null) {
@@ -105,6 +106,7 @@ export default class Profile extends Component {
   };
 
   FollowUser = () => {
+    // Follow user and add in Firebase collection Users
     var data = {
       userEmail: this.user_email
     };
@@ -130,6 +132,7 @@ export default class Profile extends Component {
   );
 
   getImage(u) {
+    // Get user uploaded images
     if (u.image != "") {
       return (
         <Image
@@ -150,11 +153,13 @@ export default class Profile extends Component {
   );
 
   getProfileText(name) {
+    // Get Profile 1st Character
     n = name;
     return n.charAt(0);
   }
 
   getProfileBackground() {
+    // Get Profile Background
     Colors = ["black", "#673AB7", "#3F51B5", "#FFC107", "#607D8B", "#4CAF50"];
     ColorNumber = Math.floor(Math.random() * 6);
     return Colors[ColorNumber];

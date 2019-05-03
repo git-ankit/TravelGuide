@@ -21,6 +21,7 @@ export default class PlaceByType extends Component {
   }
 
   searchByType = placeType => {
+    // Search Places by type function
     navigator.geolocation.getCurrentPosition(position => {
       console.log(position.coords.latitude);
       RNGooglePlaces.getCurrentPlace()
@@ -54,7 +55,7 @@ export default class PlaceByType extends Component {
     LocationList = null;
     if (this.state.LocationActive == true) {
       LocationList = (
-        <FlatList
+        <FlatList // Flatlist to render places
           data={this.state.Result}
           renderItem={({ item }) => (
             <TouchableOpacity

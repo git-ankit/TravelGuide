@@ -39,6 +39,7 @@ export default class Answers extends Component {
   }
 
   onCollectionUpdate = querySnapshot => {
+    // Fetching Data from Firebase
     if (querySnapshot.empty) {
       this.setState({
         AnswerLoading: false
@@ -62,16 +63,19 @@ export default class Answers extends Component {
   };
 
   getProfileText(name) {
+    // 1st Letter of Name
     n = name;
     return n.charAt(0);
   }
 
   getProfileBackground() {
+    // Getting Background color for Profile
     Colors = ["black", "#673AB7", "#3F51B5", "#FFC107", "#607D8B", "#4CAF50"];
     ColorNumber = Math.floor(Math.random() * 6);
     return Colors[ColorNumber];
   }
   postAnswer = () => {
+    // Post answer in Firebase
     this.setState({ loading: true });
     var data = {
       answer: this.state.answer,
